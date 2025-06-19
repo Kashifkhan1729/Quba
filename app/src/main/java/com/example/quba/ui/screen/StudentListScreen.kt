@@ -44,7 +44,7 @@ private val TextColor = Color(0xFF212529)
 
 private val DisabledColor = Color(0xFFADB5BD)
 
-data class Student(val id: Int, val name: String, val className: String)
+data class Student(val id: Int, val name: String, val classname: String)
 
 @Composable
 fun StudentListScreen(
@@ -73,9 +73,9 @@ fun StudentListScreen(
 
     // Filter students based on selected class
     val filteredStudents = if (loc == 0) {
-        students.filter { it.className == selectedClass }
+        students.filter { it.classname == selectedClass }
     } else {
-        students.filter { it.className == sub }.also {
+        students.filter { it.classname == sub }.also {
             selectedClass = sub // Ensure selectedClass is always sub when loc is 1
         }
     }
@@ -231,7 +231,7 @@ fun StudentListScreen(
                             imageVector = Icons.Filled.Group,
                             contentDescription = "Student list icon",
                             tint = PrimaryColor,
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(30.dp)
                         )
                     }
 
@@ -246,11 +246,11 @@ fun StudentListScreen(
 
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
                         Box(modifier = Modifier.weight(1f)) {
                             OutlinedTextField(
@@ -340,7 +340,7 @@ fun StudentListScreen(
                             onClick = {
                                 isLoadingMarkSheet = true
                                 kotlinx.coroutines.MainScope().launch {
-                                    delay(1000) // Simulate action
+                                    delay(10) // Simulate action
                                     onMarkSheet(selectedClass)
                                     isLoadingMarkSheet = false
                                 }
@@ -365,14 +365,14 @@ fun StudentListScreen(
                         ) {
                             if (isLoadingMarkSheet) {
                                 CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
+                                    modifier = Modifier.size(20.dp),
                                     color = Color.White
                                 )
                             } else {
                                 Text(
                                     text = "MARKSHEET",
                                     style = MaterialTheme.typography.labelLarge.copy(
-                                        fontWeight = FontWeight.Bold,
+                                        fontWeight = FontWeight.Medium,
                                         letterSpacing = 1.sp,
                                         fontFamily = FontFamily.SansSerif
                                     )
@@ -430,7 +430,7 @@ fun StudentListScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "${student.name} (${student.className})",
+                                            text = "${student.name} (${student.classname})",
                                             style = MaterialTheme.typography.bodyLarge.copy(
                                                 fontWeight = FontWeight.Medium,
                                                 color = TextColor,

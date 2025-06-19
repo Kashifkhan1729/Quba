@@ -232,7 +232,7 @@ fun AdminScreen(
                             if (username == "admin" && password == "securepassword") {
                                 onLoginSuccess("Admin")
                                 loc=0
-                                sub=""
+                                sub="Nursery"
                             } else {
                                 errorMessage = "Invalid username or password"
                             }

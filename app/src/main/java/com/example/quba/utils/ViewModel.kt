@@ -22,7 +22,7 @@ class StudentViewModel : ViewModel() {
                     Student(
                         id = doc.getLong("rollno")?.toInt() ?: 0,
                         name = doc.getString("name") ?: "",
-                        className = doc.getString("className") ?: ""
+                        classname = doc.getString("className") ?: ""
                     )
                 }
                 _students.value = studentList

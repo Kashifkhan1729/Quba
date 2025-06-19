@@ -19,15 +19,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             QubaApp()
-            val database = Firebase.database
-            val myRef = database.getReference("message")
-            myRef.setValue("Hello, World!")
         }
     }
 }
 
 var loc: Int =0
-var sub: String = ""
+var sub: String = "Nursery"
 
 @Composable
 fun QubaApp() {

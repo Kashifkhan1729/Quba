@@ -1370,7 +1370,7 @@ fun AddStudentScreen(
                                                             Student(
                                                                 id = 0, // Assuming ID is auto-generated
                                                                 name = studentName,
-                                                                className = selectedClass
+                                                                classname = selectedClass
                                                             )
                                                         )
                                                         onSaveSuccess()

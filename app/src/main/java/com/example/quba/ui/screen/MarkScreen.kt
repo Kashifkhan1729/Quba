@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+//import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -12,7 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material.icons.filled.Assignment
+//import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -143,7 +143,7 @@ fun MarkScreen(
                             }
 
                             Text(
-                                text = "Student Marks Entry",
+                                text = "Student Marks",
                                 style = MaterialTheme.typography.headlineMedium.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = TextColor,
@@ -167,7 +167,7 @@ fun MarkScreen(
                                 imageVector = Icons.AutoMirrored.Filled.Assignment,
                                 contentDescription = "Marks entry icon",
                                 tint = PrimaryColor,
-                                modifier = Modifier.size(40.dp)
+                                modifier = Modifier.size(30.dp)
                             )
                         }
 
@@ -281,7 +281,7 @@ fun MarkScreen(
                                 onValueChange = {},
                                 label = {
                                     Text(
-                                        "Class Name",
+                                        "Class",
                                         style = MaterialTheme.typography.bodyLarge.copy(
                                             color = TextColor.copy(alpha = 0.8f),
                                             fontFamily = FontFamily.SansSerif
@@ -470,7 +470,7 @@ fun MarkScreen(
                             onClick = {
                                 isLoadingGenerate = true
                                 kotlinx.coroutines.MainScope().launch {
-                                    delay(1000) // Simulate PDF generation
+                                    delay(10) // Simulate PDF generation
                                     errorMessage = if (isFormValid) {
                                         "PDF generation not implemented"
                                     } else {
@@ -499,14 +499,14 @@ fun MarkScreen(
                         ) {
                             if (isLoadingGenerate) {
                                 CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
+                                    modifier = Modifier.size(20.dp),
                                     color = Color.White
                                 )
                             } else {
                                 Text(
-                                    text = "GENERATE PDF",
+                                    text = "GENERATE",
                                     style = MaterialTheme.typography.labelLarge.copy(
-                                        fontWeight = FontWeight.Bold,
+                                        fontWeight = FontWeight.Medium,
                                         letterSpacing = 1.sp,
                                         fontFamily = FontFamily.SansSerif
                                     )
@@ -518,11 +518,11 @@ fun MarkScreen(
                             onClick = {
                                 isLoadingClear = true
                                 kotlinx.coroutines.MainScope().launch {
-                                    delay(1000) // Simulate clearing
+                                    delay(10) // Simulate clearing
                                     studentName = ""
                                     fatherName = ""
                                     rollNo = ""
-                                    date = ""
+//                                    date = ""
                                     subjectMarks.clear()
                                     errorMessage = null
                                     isLoadingClear = false
@@ -548,14 +548,14 @@ fun MarkScreen(
                         ) {
                             if (isLoadingClear) {
                                 CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
+                                    modifier = Modifier.size(20.dp),
                                     color = Color.White
                                 )
                             } else {
                                 Text(
-                                    text = "CLEAR FORM",
+                                    text = "CLEAR",
                                     style = MaterialTheme.typography.labelLarge.copy(
-                                        fontWeight = FontWeight.Bold,
+                                        fontWeight = FontWeight.Medium,
                                         letterSpacing = 1.sp,
                                         fontFamily = FontFamily.SansSerif
                                     )
@@ -684,11 +684,17 @@ fun SubjectMarksInput(
     onHyFilled: () -> Unit,
     onAnnualFilled: () -> Unit
 ) {
-    var halfYearly by remember { mutableStateOf("") }
-    var annual by remember { mutableStateOf("") }
+//    var halfYearly by remember { mutableStateOf("") }
+//    var annual by remember { mutableStateOf("") }
     var hyError by remember { mutableStateOf<String?>(null) }
     var annualError by remember { mutableStateOf<String?>(null) }
     val focusManager = LocalFocusManager.current
+    var halfYearly by remember {
+        mutableStateOf(subjectMarks[subject]?.first?.toString() ?: "")
+    }
+    var annual by remember {
+        mutableStateOf(subjectMarks[subject]?.second?.toString() ?: "")
+    }
 
     LaunchedEffect(halfYearly) {
         if (halfYearly.length == 2) {
@@ -697,6 +703,8 @@ fun SubjectMarksInput(
                 hyError = "Max 50"
             } else {
                 hyError = null
+                delay(50)
+                nextFocusRequester?.requestFocus()
                 onHyFilled()
             }
         } else {
@@ -727,13 +735,13 @@ fun SubjectMarksInput(
             Text(
                 text = subject,
                 style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Normal,
                     color = TextColor,
                     fontFamily = FontFamily.SansSerif
                 ),
                 modifier = Modifier
                     .weight(1f)
-                    .padding(end = 8.dp)
+                    .padding(end = 5.dp)
                     .semantics { contentDescription = "$subject label" },
                 textAlign = TextAlign.Start
             )
@@ -801,7 +809,7 @@ fun SubjectMarksInput(
                     },
                     label = {
                         Text(
-                            "Annual",
+                            "AN",
                             style = MaterialTheme.typography.bodyLarge.copy(
                                 color = TextColor.copy(alpha = 0.8f),
                                 fontFamily = FontFamily.SansSerif
@@ -822,7 +830,11 @@ fun SubjectMarksInput(
                         imeAction = if (subjectIndex < totalSubjects - 1) ImeAction.Next else ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(
-                        onNext = { onAnnualFilled() },
+                        onNext = {
+                            if (annual.length == 2) {
+                                nextFocusRequester?.requestFocus()
+                            }
+                        },
                         onDone = { focusManager.clearFocus() }
                     ),
                     shape = RoundedCornerShape(12.dp),
@@ -861,7 +873,7 @@ fun getSubjectsForClass(className: String): List<String> {
 }
 
 @Preview(showBackground = true, widthDp = 360, heightDp = 640, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO)
-@Preview(showBackground = true, widthDp = 720, heightDp = 1280, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+//@Preview(showBackground = true, widthDp = 720, heightDp = 1280, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun MarkScreenPreview() {
     MaterialTheme {

@@ -199,7 +199,7 @@ fun RoleButton(
         onClick = {
             isLoading = true
             kotlinx.coroutines.MainScope().launch {
-                delay(1000) // Simulate navigation
+                delay(100) // Simulate navigation
                 onClick()
                 isLoading = false
             }
