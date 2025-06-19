@@ -1,245 +1,426 @@
-
-
 package com.example.quba.ui.screen
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.app.DatePickerDialog
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.ui.tooling.preview.Preview
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import android.app.DatePickerDialog
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.ui.text.input.KeyboardType
 import com.example.quba.loc
 import com.example.quba.sub
-import com.example.quba.ui.theme.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
+// Colors from AdminScreen
+private val SecondaryColor = Color(0xFF3F37C9)
+private val BackgroundColor = Color(0xFFF8F9FA)
+private val CardColor = Color.White
+private val TextColor = Color(0xFF212529)
 
-@OptIn(ExperimentalMaterial3Api::class)
+private val DisabledColor = Color(0xFFADB5BD)
+
 @Composable
 fun MarkScreen(
     modifier: Modifier = Modifier,
-    onBack: () -> Unit = {} // Added for navigation consistency
+    onBack: () -> Unit = {}
 ) {
     val classes = listOf("Nursery", "KG", "1st", "2nd", "3rd", "4th", "5th")
     var studentName by remember { mutableStateOf("") }
     var fatherName by remember { mutableStateOf("") }
     var rollNo by remember { mutableStateOf("") }
-    var selectedClass by remember { mutableStateOf("Nursery") }
+    var selectedClass by remember { mutableStateOf(if (loc == 1) sub else "Nursery") }
     var date by remember { mutableStateOf("") }
     val subjects = getSubjectsForClass(selectedClass)
     val subjectMarks = remember { mutableStateMapOf<String, Pair<Int, Int>>() }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val isFormValid = studentName.isNotBlank() && fatherName.isNotBlank() && rollNo.isNotBlank() && date.isNotBlank() && subjects.all { subjectMarks[it]?.let { (hy, an) -> hy >= 0 && an >= 0 } == true }
-    if (loc==1){
-        selectedClass=sub
-    }
+    var isLoadingGenerate by remember { mutableStateOf(false) }
+    var isLoadingClear by remember { mutableStateOf(false) }
+    val isFormValid = studentName.isNotBlank() && fatherName.isNotBlank() &&
+            rollNo.isNotBlank() && date.isNotBlank() &&
+            subjects.all { subjectMarks[it]?.let { (hy, an) -> hy in 0..50 && an in 0..50 } == true }
+    val focusRequesters = remember { subjects.map { FocusRequester() } }
+    val focusManager = LocalFocusManager.current
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(SoftGrey)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(BackgroundColor, Color.White)
+                )
+            )
     ) {
-        AnimatedVisibility(
-            visible = true,
-            enter = fadeIn(),
-            exit = fadeOut()
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(PrimaryColor, SecondaryColor)
+                    )
+                )
+                .align(Alignment.TopCenter)
+        )
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .align(Alignment.Center)
+                .shadow(
+                    elevation = 16.dp,
+                    shape = RoundedCornerShape(24.dp),
+                    spotColor = PrimaryColor.copy(alpha = 0.2f)
+                ),
+            colors = CardDefaults.cardColors(containerColor = CardColor),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            shape = RoundedCornerShape(24.dp)
         ) {
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxWidth()
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = AccentCream),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        shape = RoundedCornerShape(16.dp)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(24.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             IconButton(
                                 onClick = onBack,
                                 modifier = Modifier
-                                    .align(Alignment.Start)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(SoftBlue.copy(alpha = 0.1f))
+                                    .size(40.dp)
                                     .semantics { contentDescription = "Back to previous screen" }
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = null,
-                                    tint = Color.DarkGray
+                                    tint = TextColor
                                 )
                             }
 
                             Text(
                                 text = "Student Marks Entry",
-                                style = MaterialTheme.typography.headlineSmall.copy(
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 24.sp,
-                                    color = Color.DarkGray
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextColor,
+                                    fontFamily = FontFamily.SansSerif
                                 ),
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 8.dp)
-                                    .semantics { contentDescription = "Student Marks Entry Title" },
-                                textAlign = TextAlign.Center
+                                    .weight(1f)
+                                    .padding(start = 8.dp)
+                                    .semantics { contentDescription = "Student Marks Entry Title" }
                             )
+                        }
 
-                            CustomTextField(
-                                modifier = Modifier.fillMaxWidth(),
-                                value = studentName,
-                                onValueChange = {
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(PrimaryColor.copy(alpha = 0.1f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Assignment,
+                                contentDescription = "Marks entry icon",
+                                tint = PrimaryColor,
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+
+                        Text(
+                            text = "Enter student marks and generate report",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = TextColor.copy(alpha = 0.6f),
+                                fontFamily = FontFamily.SansSerif
+                            )
+                        )
+                    }
+                }
+
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = studentName,
+                            onValueChange = {
+                                if (it.length <= 50 && it.matches(Regex("^[A-Za-z\\s]*$"))) {
                                     studentName = it
                                     errorMessage = null
-                                },
-                                label = "Student Name",
-                                contentDescription = "Student Name input field",
-                                isError = errorMessage != null,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                                }
+                            },
+                            label = {
+                                Text(
+                                    "Student Name",
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        color = TextColor.copy(alpha = 0.8f),
+                                        fontFamily = FontFamily.SansSerif
+                                    )
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics { contentDescription = "Student Name input field" },
+                            isError = errorMessage != null,
+                            supportingText = errorMessage?.let {
+                                { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) }
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
+                                focusedBorderColor = PrimaryColor,
+                                unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+                                cursorColor = PrimaryColor,
+                                focusedLabelColor = PrimaryColor,
+                                unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
+                                focusedTextColor = TextColor,
+                                unfocusedTextColor = TextColor
                             )
+                        )
 
-                            CustomTextField(
-                                modifier = Modifier.fillMaxWidth(),
-                                value = fatherName,
-                                onValueChange = {
+                        OutlinedTextField(
+                            value = fatherName,
+                            onValueChange = {
+                                if (it.length <= 50 && it.matches(Regex("^[A-Za-z\\s]*$"))) {
                                     fatherName = it
                                     errorMessage = null
-                                },
-                                label = "Father's Name",
-                                contentDescription = "Father's Name input field",
-                                isError = errorMessage != null,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                                }
+                            },
+                            label = {
+                                Text(
+                                    "Father's Name",
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        color = TextColor.copy(alpha = 0.8f),
+                                        fontFamily = FontFamily.SansSerif
+                                    )
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics { contentDescription = "Father's Name input field" },
+                            isError = errorMessage != null,
+                            supportingText = errorMessage?.let {
+                                { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) }
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
+                                focusedBorderColor = PrimaryColor,
+                                unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+                                cursorColor = PrimaryColor,
+                                focusedLabelColor = PrimaryColor,
+                                unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
+                                focusedTextColor = TextColor,
+                                unfocusedTextColor = TextColor
                             )
+                        )
 
-                            // Class Dropdown
+                        Box(modifier = Modifier.fillMaxWidth()) {
                             var expanded by remember { mutableStateOf(false) }
-                            Box(modifier = Modifier.fillMaxWidth()) {
-                                OutlinedTextField(
-                                    value = if (loc == 1) sub else selectedClass,
-                                    onValueChange = {},
-                                    label = { Text("Class Name", style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp)) },
-
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .semantics { contentDescription = "Class selection field" },
-                                    readOnly = true,
-                                    trailingIcon = { if (loc!=1){
-                                        IconButton(onClick = { expanded = !expanded },
-                                            enabled = loc==0
-                                        ) {
+                            OutlinedTextField(
+                                value = selectedClass,
+                                onValueChange = {},
+                                label = {
+                                    Text(
+                                        "Class Name",
+                                        style = MaterialTheme.typography.bodyLarge.copy(
+                                            color = TextColor.copy(alpha = 0.8f),
+                                            fontFamily = FontFamily.SansSerif
+                                        )
+                                    )
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(enabled = loc == 0) { expanded = true }
+                                    .semantics { contentDescription = "Class selection field" },
+                                readOnly = true,
+                                enabled = loc == 0,
+                                trailingIcon = {
+                                    if (loc == 0) {
+                                        IconButton(onClick = { expanded = !expanded }) {
                                             Icon(
                                                 imageVector = if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
                                                 contentDescription = "Toggle class dropdown",
-                                                tint = if (loc == 1)Color.DarkGray else Color.DarkGray
+                                                tint = TextColor.copy(alpha = 0.6f)
                                             )
-                                        }}
-                                    },
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = SoftBlue,
-                                        unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-                                        errorBorderColor = MaterialTheme.colorScheme.error
-                                    )
-                                )
-                                if (loc!=0){
-                                DropdownMenu(
-                                    expanded = expanded,
-                                    onDismissRequest = { expanded = false },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(
-                                            Brush.linearGradient(
-                                                colors = listOf(AccentCream, AccentCream.copy(alpha = 0.9f))
-                                            )
-                                        )
-                                ) {
-                                    classes.forEach { className ->
-                                        DropdownMenuItem(
-                                            text = { Text(className, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp, color = Color.DarkGray)) },
-                                            onClick = {
-                                                selectedClass = className
-                                                expanded = false
-                                                errorMessage = null
-                                                subjectMarks.clear() // Reset marks when class changes
-                                            },
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .background(
-                                                    if (selectedClass == className) SoftBlue.copy(alpha = 0.1f) else Color.Transparent
-                                                )
-                                                .semantics { contentDescription = "Select $className" }
-                                        )
+                                        }
                                     }
-                                }}
-                            }
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    disabledContainerColor = Color.Transparent,
+                                    focusedBorderColor = PrimaryColor,
+                                    unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+                                    disabledBorderColor = TextColor.copy(alpha = 0.2f),
+                                    cursorColor = PrimaryColor,
+                                    focusedLabelColor = PrimaryColor,
+                                    unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
+                                    disabledLabelColor = TextColor.copy(alpha = 0.8f),
+                                    focusedTextColor = TextColor,
+                                    unfocusedTextColor = TextColor,
+                                    disabledTextColor = TextColor
+                                )
+                            )
 
-                            CustomTextField(
-                                modifier = Modifier.fillMaxWidth(),
-                                value = rollNo,
-                                onValueChange = {
+                            DropdownMenu(
+                                expanded = expanded && loc == 0,
+                                onDismissRequest = { expanded = false },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(CardColor)
+                            ) {
+                                classes.forEach { className ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                className,
+                                                style = MaterialTheme.typography.bodyLarge.copy(
+                                                    color = TextColor,
+                                                    fontFamily = FontFamily.SansSerif
+                                                )
+                                            )
+                                        },
+                                        onClick = {
+                                            selectedClass = className
+                                            expanded = false
+                                            errorMessage = null
+                                            subjectMarks.clear()
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(
+                                                if (selectedClass == className) PrimaryColor.copy(alpha = 0.1f) else Color.Transparent
+                                            )
+                                            .semantics { contentDescription = "Select $className" }
+                                    )
+                                }
+                            }
+                        }
+
+                        OutlinedTextField(
+                            value = rollNo,
+                            onValueChange = {
+                                if (it.length <= 10 && (it.isEmpty() || it.matches(Regex("^[0-9]*$")))) {
                                     rollNo = it
                                     errorMessage = null
-                                },
-                                label = "Roll No",
-                                contentDescription = "Roll Number input field",
-                                isError = errorMessage != null,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                }
+                            },
+                            label = {
+                                Text(
+                                    "Roll No",
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        color = TextColor.copy(alpha = 0.8f),
+                                        fontFamily = FontFamily.SansSerif
+                                    )
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics { contentDescription = "Roll Number input field" },
+                            isError = errorMessage != null,
+                            supportingText = errorMessage?.let {
+                                { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) }
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Number,
+                                imeAction = ImeAction.Next
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
+                                focusedBorderColor = PrimaryColor,
+                                unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+                                cursorColor = PrimaryColor,
+                                focusedLabelColor = PrimaryColor,
+                                unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
+                                focusedTextColor = TextColor,
+                                unfocusedTextColor = TextColor
                             )
+                        )
 
-                            DatePickerField(
-                                modifier = Modifier.fillMaxWidth(),
-                                date = date,
-                                onDateSelected = {
-                                    date = it
-                                    errorMessage = null
-                                },
-                                isError = errorMessage != null
-                            )
-                        }
+                        DatePickerField(
+                            modifier = Modifier.fillMaxWidth(),
+                            date = date,
+                            onDateSelected = {
+                                date = it
+                                errorMessage = null
+                            },
+                            isError = errorMessage != null
+                        )
                     }
                 }
 
                 item {
                     Text(
                         text = "Subject Marks",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 18.sp,
-                            color = Color.DarkGray
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = TextColor,
+                            fontFamily = FontFamily.SansSerif
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -253,176 +434,152 @@ fun MarkScreen(
                     SubjectMarksInput(
                         modifier = Modifier.fillMaxWidth(),
                         subject = subjects[index],
+                        subjectIndex = index,
+                        totalSubjects = subjects.size,
                         subjectMarks = subjectMarks,
                         onMarksChanged = { halfYearly, annual ->
                             subjectMarks[subjects[index]] = Pair(halfYearly, annual)
                             errorMessage = null
                         },
-                        isError = errorMessage != null
+                        isError = errorMessage != null,
+                        focusRequester = focusRequesters[index],
+                        nextFocusRequester = focusRequesters.getOrNull(index + 1),
+                        onHyFilled = {
+                            if (index < subjects.size) {
+                                focusRequesters[index].requestFocus()
+                            }
+                        },
+                        onAnnualFilled = {
+                            if (index < subjects.size - 1) {
+                                focusRequesters[index + 1].requestFocus()
+                            } else {
+                                focusManager.clearFocus()
+                            }
+                        }
                     )
                 }
 
                 item {
-                    AnimatedVisibility(
-                        visible = errorMessage != null,
-                        enter = fadeIn(),
-                        exit = fadeOut()
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        errorMessage?.let {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.1f))
-                                    .padding(8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Error,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error
+                        Button(
+                            onClick = {
+                                isLoadingGenerate = true
+                                kotlinx.coroutines.MainScope().launch {
+                                    delay(1000) // Simulate PDF generation
+                                    errorMessage = if (isFormValid) {
+                                        "PDF generation not implemented"
+                                    } else {
+                                        "Please fill all fields and enter valid marks"
+                                    }
+                                    isLoadingGenerate = false
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp)
+                                .semantics { contentDescription = "Generate PDF button" },
+                            enabled = isFormValid && !isLoadingGenerate,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = PrimaryColor,
+                                contentColor = Color.White,
+                                disabledContainerColor = DisabledColor,
+                                disabledContentColor = Color.White.copy(alpha = 0.5f)
+                            ),
+                            elevation = ButtonDefaults.buttonElevation(
+                                defaultElevation = 4.dp,
+                                pressedElevation = 8.dp,
+                                disabledElevation = 0.dp
+                            )
+                        ) {
+                            if (isLoadingGenerate) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = Color.White
                                 )
+                            } else {
                                 Text(
-                                    text = it,
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Medium
-                                    ),
-                                    modifier = Modifier.semantics { contentDescription = "Error: $it" }
+                                    text = "GENERATE PDF",
+                                    style = MaterialTheme.typography.labelLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 1.sp,
+                                        fontFamily = FontFamily.SansSerif
+                                    )
+                                )
+                            }
+                        }
+
+                        Button(
+                            onClick = {
+                                isLoadingClear = true
+                                kotlinx.coroutines.MainScope().launch {
+                                    delay(1000) // Simulate clearing
+                                    studentName = ""
+                                    fatherName = ""
+                                    rollNo = ""
+                                    date = ""
+                                    subjectMarks.clear()
+                                    errorMessage = null
+                                    isLoadingClear = false
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp)
+                                .semantics { contentDescription = "Clear Form button" },
+                            enabled = !isLoadingClear,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ErrorColor,
+                                contentColor = Color.White,
+                                disabledContainerColor = DisabledColor,
+                                disabledContentColor = Color.White.copy(alpha = 0.5f)
+                            ),
+                            elevation = ButtonDefaults.buttonElevation(
+                                defaultElevation = 4.dp,
+                                pressedElevation = 8.dp,
+                                disabledElevation = 0.dp
+                            )
+                        ) {
+                            if (isLoadingClear) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = Color.White
+                                )
+                            } else {
+                                Text(
+                                    text = "CLEAR FORM",
+                                    style = MaterialTheme.typography.labelLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        letterSpacing = 1.sp,
+                                        fontFamily = FontFamily.SansSerif
+                                    )
                                 )
                             }
                         }
                     }
 
-                    Row(
+                    Text(
+                        text = "Need help?",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = PrimaryColor,
+                            fontWeight = FontWeight.Medium,
+                            fontFamily = FontFamily.SansSerif
+                        ),
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Button(
-                            onClick = {
-                                errorMessage = if (isFormValid) {
-                                    "PDF generation not implemented"
-                                } else {
-                                    "Please fill all fields and enter valid marks"
-                                }
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(end = 8.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    Brush.linearGradient(
-                                        colors = listOf(SoftBlue, SoftBlue.copy(alpha = 0.8f))
-                                    )
-                                )
-                                .semantics { contentDescription = "Generate PDF button" },
-                            enabled = isFormValid,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Transparent,
-                                contentColor = Color.White,
-                                disabledContainerColor = SoftBlue.copy(alpha = 0.3f),
-                                disabledContentColor = Color.White.copy(alpha = 0.5f)
-                            ),
-                            elevation = ButtonDefaults.buttonElevation(
-                                defaultElevation = 2.dp,
-                                pressedElevation = 6.dp,
-                                disabledElevation = 0.dp
-                            )
-                        ) {
-                            Text(
-                                text = "Generate PDF",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 16.sp
-                                ),
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
-                        }
-
-                        Button(
-                            onClick = {
-                                studentName = ""
-                                fatherName = ""
-                                rollNo = ""
-                                date = ""
-                                subjectMarks.clear()
-                                errorMessage = null
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(start = 8.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    Brush.linearGradient(
-                                        colors = listOf(Color(0xFFE57373), Color(0xFFE57373).copy(alpha = 0.8f))
-                                    )
-                                )
-                                .semantics { contentDescription = "Clear Form button" },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Transparent,
-                                contentColor = Color.White,
-                                disabledContainerColor = Color(0xFFE57373).copy(alpha = 0.3f),
-                                disabledContentColor = Color.White.copy(alpha = 0.5f)
-                            ),
-                            elevation = ButtonDefaults.buttonElevation(
-                                defaultElevation = 2.dp,
-                                pressedElevation = 6.dp,
-                                disabledElevation = 0.dp
-                            )
-                        ) {
-                            Text(
-                                text = "Clear Form",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 16.sp
-                                ),
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
-                        }
-                    }
+                            .clickable { /* Handle help request */ }
+                            .padding(top = 16.dp)
+                            .semantics { contentDescription = "Need help link" }
+                    )
                 }
             }
         }
     }
-}
-
-@Composable
-fun CustomTextField(
-    modifier: Modifier = Modifier,
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    contentDescription: String,
-    isError: Boolean,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
-    readOnly: Boolean = false,
-    trailingIcon: @Composable (() -> Unit)? = null,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp)) },
-        modifier = modifier
-            .fillMaxWidth()
-            .semantics { this.contentDescription = contentDescription },
-        isError = isError,
-        singleLine = true,
-        visualTransformation = visualTransformation,
-        readOnly = readOnly,
-        trailingIcon = trailingIcon,
-        keyboardOptions = keyboardOptions,
-        shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = SoftBlue,
-            unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-            errorBorderColor = MaterialTheme.colorScheme.error
-        )
-    )
 }
 
 @Composable
@@ -434,32 +591,43 @@ fun DatePickerField(
 ) {
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("26/06/2025", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
-    CustomTextField(
-        modifier = modifier.clickable {
-            val datePickerDialog = DatePickerDialog(
-                context,
-                { _, year, month, dayOfMonth ->
-                    val selectedDate = Calendar.getInstance().apply {
-                        set(year, month, dayOfMonth)
-                    }.time
-                    onDateSelected(dateFormat.format(selectedDate))
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            ).apply {
-                datePicker.maxDate = System.currentTimeMillis()
-            }
-            datePickerDialog.show()
-        },
+    OutlinedTextField(
         value = date,
         onValueChange = {},
-        label = "Date of Birth",
-        contentDescription = "Date input field",
-        isError = isError,
+        label = {
+            Text(
+                "Date",
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    color = TextColor.copy(alpha = 0.8f),
+                    fontFamily = FontFamily.SansSerif
+                )
+            )
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable {
+                val datePickerDialog = DatePickerDialog(
+                    context,
+                    { _, year, month, dayOfMonth ->
+                        val selectedDate = Calendar.getInstance().apply {
+                            set(year, month, dayOfMonth)
+                        }.time
+                        onDateSelected(dateFormat.format(selectedDate))
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+                ).apply {
+                    datePicker.maxDate = System.currentTimeMillis()
+                }
+                datePickerDialog.show()
+            }
+            .semantics { contentDescription = "Date input field" },
         readOnly = true,
+        isError = isError,
+        supportingText = isError.let { { Text("Please select a date", color = ErrorColor, fontFamily = FontFamily.SansSerif) } },
         trailingIcon = {
             IconButton(onClick = {
                 val datePickerDialog = DatePickerDialog(
@@ -481,10 +649,24 @@ fun DatePickerField(
                 Icon(
                     imageVector = Icons.Default.DateRange,
                     contentDescription = "Open date picker",
-                    tint = Color.DarkGray
+                    tint = TextColor.copy(alpha = 0.6f)
                 )
             }
-        }
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+            focusedBorderColor = PrimaryColor,
+            unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+            cursorColor = PrimaryColor,
+            focusedLabelColor = PrimaryColor,
+            unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
+            focusedTextColor = TextColor,
+            unfocusedTextColor = TextColor
+        )
     )
 }
 
@@ -492,75 +674,197 @@ fun DatePickerField(
 fun SubjectMarksInput(
     modifier: Modifier = Modifier,
     subject: String,
+    subjectIndex: Int,
+    totalSubjects: Int,
     subjectMarks: SnapshotStateMap<String, Pair<Int, Int>>,
     onMarksChanged: (Int, Int) -> Unit,
-    isError: Boolean
+    isError: Boolean,
+    focusRequester: FocusRequester,
+    nextFocusRequester: FocusRequester?,
+    onHyFilled: () -> Unit,
+    onAnnualFilled: () -> Unit
 ) {
     var halfYearly by remember { mutableStateOf("") }
     var annual by remember { mutableStateOf("") }
+    var hyError by remember { mutableStateOf<String?>(null) }
+    var annualError by remember { mutableStateOf<String?>(null) }
+    val focusManager = LocalFocusManager.current
 
-    Row(
-        modifier = modifier.padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = subject,
-            style = MaterialTheme.typography.bodyLarge.copy(
-                fontWeight = FontWeight.Medium,
-                fontSize = 16.sp,
-                color = Color.DarkGray
-            ),
-            modifier = Modifier
-                .weight(1f)
-                .padding(end = 8.dp)
-                .semantics { contentDescription = "$subject label" },
-            textAlign = TextAlign.Start
-        )
+    LaunchedEffect(halfYearly) {
+        if (halfYearly.length == 2) {
+            val value = halfYearly.toIntOrNull() ?: 0
+            if (value > 50) {
+                hyError = "Max 50"
+            } else {
+                hyError = null
+                onHyFilled()
+            }
+        } else {
+            hyError = null
+        }
+    }
 
-        CustomTextField(
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 4.dp),
-            value = halfYearly,
-            onValueChange = {
-                halfYearly = it
-                onMarksChanged(it.toIntOrNull() ?: 0, annual.toIntOrNull() ?: 0)
-            },
-            label = "HY",
-            contentDescription = "$subject Half Yearly marks input",
-            isError = isError,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-        )
+    LaunchedEffect(annual) {
+        if (annual.length == 2) {
+            val value = annual.toIntOrNull() ?: 0
+            if (value > 50) {
+                annualError = "Max 50"
+            } else {
+                annualError = null
+                onAnnualFilled()
+            }
+        } else {
+            annualError = null
+        }
+    }
 
-        CustomTextField(
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 8.dp),
-            value = annual,
-            onValueChange = {
-                annual = it
-                onMarksChanged(halfYearly.toIntOrNull() ?: 0, it.toIntOrNull() ?: 0)
-            },
-            label = "Annual",
-            contentDescription = "$subject Annual marks input",
-            isError = isError,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-        )
+    Column(modifier = modifier.padding(vertical = 8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = subject,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Medium,
+                    color = TextColor,
+                    fontFamily = FontFamily.SansSerif
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+                    .semantics { contentDescription = "$subject label" },
+                textAlign = TextAlign.Start
+            )
+
+            Column(modifier = Modifier.weight(1f)) {
+                OutlinedTextField(
+                    value = halfYearly,
+                    onValueChange = {
+                        if (it.length <= 2 && (it.isEmpty() || it.toIntOrNull() != null)) {
+                            halfYearly = it
+                            onMarksChanged(it.toIntOrNull() ?: 0, annual.toIntOrNull() ?: 0)
+                        }
+                    },
+                    label = {
+                        Text(
+                            "HY",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = TextColor.copy(alpha = 0.8f),
+                                fontFamily = FontFamily.SansSerif
+                            )
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp)
+                        .focusRequester(focusRequester)
+                        .semantics { contentDescription = "$subject Half Yearly marks input" },
+                    isError = isError || hyError != null,
+                    supportingText = hyError?.let {
+                        { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) }
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = if (annual.length < 2) ImeAction.Next else ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { nextFocusRequester?.requestFocus() },
+                        onDone = { focusManager.clearFocus() }
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedBorderColor = PrimaryColor,
+                        unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+                        cursorColor = PrimaryColor,
+                        focusedLabelColor = PrimaryColor,
+                        unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
+                        focusedTextColor = TextColor,
+                        unfocusedTextColor = TextColor
+                    )
+                )
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                OutlinedTextField(
+                    value = annual,
+                    onValueChange = {
+                        if (it.length <= 2 && (it.isEmpty() || it.toIntOrNull() != null)) {
+                            annual = it
+                            onMarksChanged(halfYearly.toIntOrNull() ?: 0, it.toIntOrNull() ?: 0)
+                        }
+                    },
+                    label = {
+                        Text(
+                            "Annual",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = TextColor.copy(alpha = 0.8f),
+                                fontFamily = FontFamily.SansSerif
+                            )
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp)
+                        .semantics { contentDescription = "$subject Annual marks input" },
+                    isError = isError || annualError != null,
+                    supportingText = annualError?.let {
+                        { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) }
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = if (subjectIndex < totalSubjects - 1) ImeAction.Next else ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { onAnnualFilled() },
+                        onDone = { focusManager.clearFocus() }
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedBorderColor = PrimaryColor,
+                        unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+                        cursorColor = PrimaryColor,
+                        focusedLabelColor = PrimaryColor,
+                        unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
+                        focusedTextColor = TextColor,
+                        unfocusedTextColor = TextColor
+                    )
+                )
+            }
+        }
     }
 }
-
 
 fun getSubjectsForClass(className: String): List<String> {
     return when (className) {
-        "Nursery" -> listOf("English", "Maths", "Drawing")
-        "KG" -> listOf("English", "Maths", "EVS", "Drawing")
-        else -> listOf("English", "Maths", "Science", "Social Studies", "Hindi")
+        "Nursery" -> listOf("Urdu", "Hindi", "English", "Arabic", "Mathematics", "Counting", "Dua")
+        "KG" -> listOf("Urdu", "Hindi", "English", "Drawing", "Arabic", "Mathematics", "Dua")
+        "1st" -> listOf("Urdu", "Hindi", "English", "Diniyat", "Arabic", "Mathematics", "Dua")
+        "2nd" -> listOf(
+            "Urdu", "Hindi", "English", "Diniyat", "Arabic",
+            "Mathematics", "Science", "Social Study", "Moral Education", "Dua"
+        )
+        else -> listOf(
+            "Urdu", "Hindi", "English", "Diniyat", "Arabic",
+            "Mathematics", "Science", "Social Study", "Moral Education", "Dua"
+        )
     }
 }
 
-@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, widthDp = 360, heightDp = 640, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO)
+@Preview(showBackground = true, widthDp = 720, heightDp = 1280, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun MarkScreenPreview() {
-    MarkScreen()
+    MaterialTheme {
+        MarkScreen()
+    }
 }

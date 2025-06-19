@@ -26,8 +26,9 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-public var loc: Int =0
-public var sub: String = ""
+var loc: Int =0
+var sub: String = ""
+
 @Composable
 fun QubaApp() {
     QubaTheme {

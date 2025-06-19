@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.example.quba.*
 
 val PrimaryColor = Color(0xFF4361EE)
 private val SecondaryColor = Color(0xFF3F37C9)
@@ -230,6 +231,8 @@ fun AdminScreen(
                             delay(1000) // Simulate API call
                             if (username == "admin" && password == "securepassword") {
                                 onLoginSuccess("Admin")
+                                loc=0
+                                sub=""
                             } else {
                                 errorMessage = "Invalid username or password"
                             }

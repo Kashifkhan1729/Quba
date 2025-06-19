@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.example.quba.*
 
 // Colors from AdminScreen
 private val SecondaryColor = Color(0xFF3F37C9)
@@ -320,6 +321,8 @@ fun TeacherScreen(
                             delay(1000) // Simulate authentication
                             if (isFormValid && username == "teacher" && password == "password") {
                                 onLoginSuccess(className)
+                                loc=1
+                                sub=className
                             } else {
                                 errorMessage = "Invalid credentials or missing class"
                             }

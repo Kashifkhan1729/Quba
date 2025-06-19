@@ -1,34 +1,24 @@
 package com.example.quba.ui.screen
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.SupervisorAccount
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -40,18 +30,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.runtime.getValue
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-private val CardBackground = Color(0x33FFFFFF)
-private val BackgroundGradientStart = Color(0xFF15202B)
-private val BackgroundGradientEnd = Color(0xFF192734)
-private val TextPrimary = Color(0xFFE1E8ED)
-private val ButtonTextColor = Color.White
-private val ButtonSurfaceColor = Color(0xFF1DA1F2)
-private val CardElevation = 16.dp
-private val ButtonElevationDefault = 6.dp
-private val ButtonElevationPressed = 12.dp
+// Colors from AdminScreen
+private val SecondaryColor = Color(0xFF3F37C9)
+private val BackgroundColor = Color(0xFFF8F9FA)
+private val CardColor = Color.White
+private val TextColor = Color(0xFF212529)
+
+private val DisabledColor = Color(0xFFADB5BD)
 
 @Composable
 fun MainScreen(
@@ -65,34 +53,82 @@ fun MainScreen(
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(BackgroundGradientStart, BackgroundGradientEnd)
+                    colors = listOf(BackgroundColor, Color.White)
                 )
             )
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(PrimaryColor, SecondaryColor)
+                    )
+                )
+                .align(Alignment.TopCenter)
+        )
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 32.dp, vertical = 48.dp)
-                .align(Alignment.Center),
-            colors = CardDefaults.cardColors(containerColor = CardBackground),
-            shape = RoundedCornerShape(24.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = CardElevation)
+                .padding(horizontal = 24.dp)
+                .align(Alignment.Center)
+                .shadow(
+                    elevation = 16.dp,
+                    shape = RoundedCornerShape(24.dp),
+                    spotColor = PrimaryColor.copy(alpha = 0.2f)
+                ),
+            colors = CardDefaults.cardColors(containerColor = CardColor),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            shape = RoundedCornerShape(24.dp)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(32.dp),
-                verticalArrangement = Arrangement.spacedBy(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                Text(
-                    text = "Choose Your Role",
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 30.sp,
-                    color = TextPrimary,
-                    textAlign = TextAlign.Center
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(PrimaryColor.copy(alpha = 0.1f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.SupervisorAccount,
+                            contentDescription = "Role selection icon",
+                            tint = PrimaryColor,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+
+                    Text(
+                        text = "Choose Your Role",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = TextColor,
+                            fontFamily = FontFamily.SansSerif
+                        ),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.semantics { contentDescription = "Choose Your Role Title" }
+                    )
+
+                    Text(
+                        text = "Select your role to proceed",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = TextColor.copy(alpha = 0.6f),
+                            fontFamily = FontFamily.SansSerif
+                        )
+                    )
+                }
+
                 val roles = listOf(
                     Role(
                         label = "Admin",
@@ -110,15 +146,28 @@ fun MainScreen(
                         onClick = onStudentClick
                     )
                 )
+
                 roles.forEach { role ->
                     RoleButton(
                         text = role.label,
                         icon = role.icon,
                         onClick = role.onClick,
                         contentDescription = "${role.label} button",
-                        modifier = Modifier.fillMaxWidth(0.8f)
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
+
+                Text(
+                    text = "Need help?",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = PrimaryColor,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = FontFamily.SansSerif
+                    ),
+                    modifier = Modifier
+                        .clickable { /* Handle help request */ }
+                        .semantics { contentDescription = "Need help link" }
+                )
             }
         }
     }
@@ -138,20 +187,41 @@ fun RoleButton(
     contentDescription: String,
     modifier: Modifier = Modifier
 ) {
+    var isLoading by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val elevation = if (isPressed) ButtonElevationPressed else ButtonElevationDefault
+    val buttonColor by animateColorAsState(
+        targetValue = if (isPressed && !isLoading) PrimaryColor.copy(alpha = 0.8f) else PrimaryColor,
+        animationSpec = tween(durationMillis = 200)
+    )
 
     Button(
-        onClick = onClick,
+        onClick = {
+            isLoading = true
+            kotlinx.coroutines.MainScope().launch {
+                delay(1000) // Simulate navigation
+                onClick()
+                isLoading = false
+            }
+        },
         modifier = modifier
-            .height(56.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .height(50.dp)
+            .clip(RoundedCornerShape(12.dp))
             .semantics { this.contentDescription = contentDescription },
-        colors = ButtonDefaults.buttonColors(containerColor = ButtonSurfaceColor),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = elevation),
-        shape = RoundedCornerShape(16.dp),
-        contentPadding = PaddingValues(horizontal = 20.dp),
+        enabled = !isLoading,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = buttonColor,
+            contentColor = Color.White,
+            disabledContainerColor = DisabledColor,
+            disabledContentColor = Color.White.copy(alpha = 0.5f)
+        ),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 4.dp,
+            pressedElevation = 8.dp,
+            disabledElevation = 0.dp
+        ),
+        shape = RoundedCornerShape(12.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp),
         interactionSource = interactionSource
     ) {
         Row(
@@ -159,30 +229,42 @@ fun RoleButton(
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = "Icon for $text role",
-                tint = ButtonTextColor,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.size(16.dp))
-            Text(
-                text = text,
-                color = ButtonTextColor,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.SansSerif
-            )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color.White
+                )
+            } else {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = "Icon for $text role",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.size(16.dp))
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.SansSerif,
+                        letterSpacing = 1.sp
+                    ),
+                    color = Color.White
+                )
+            }
         }
     }
 }
 
-@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, widthDp = 360, heightDp = 640, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO)
+@Preview(showBackground = true, widthDp = 720, heightDp = 1280, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun MainScreenPreview() {
-    MainScreen(
-        onAdminClick = {},
-        onTeacherClick = {},
-        onStudentClick = {}
-    )
+    MaterialTheme {
+        MainScreen(
+            onAdminClick = {},
+            onTeacherClick = {},
+            onStudentClick = {}
+        )
+    }
 }
