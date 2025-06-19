@@ -1,8 +1,5 @@
-
 package com.example.quba.ui.screen
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,31 +7,36 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
+import java.util.*
 import android.app.DatePickerDialog
-import androidx.compose.material.icons.filled.Error
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-// Color palette for consistency
-val SoftBlue = Color(0xFF90CAF9) // Light blue for buttons
-val SoftGrey = Color(0xFFF5F5F5) // Light grey for background
-val AccentCream = Color(0xFFFFF3E0) // Creamy accent for card
+// Colors from AdminScreen
+private val SecondaryColor = Color(0xFF3F37C9)
+private val BackgroundColor = Color(0xFFF8F9FA)
+private val CardColor = Color.White
+private val TextColor = Color(0xFF212529)
+
+private val DisabledColor = Color(0xFFADB5BD)
 
 @Composable
 fun StudentScreen(
@@ -45,7 +47,8 @@ fun StudentScreen(
     var rollNo by remember { mutableStateOf("") }
     var dateOfBirth by remember { mutableStateOf(DateUtils.getCurrentDate()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val isFormValid = rollNo.isNotBlank() && dateOfBirth.isNotBlank()
+    var isLoading by remember { mutableStateOf(false) }
+    val isFormValid = rollNo.matches(Regex("^[A-Za-z0-9]{3,}$")) && dateOfBirth.isNotBlank()
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
     val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
@@ -85,126 +88,187 @@ fun StudentScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(SoftGrey)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(BackgroundColor, Color.White)
+                )
+            )
     ) {
-        AnimatedVisibility(
-            visible = true,
-            enter = fadeIn(),
-            exit = fadeOut()
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(PrimaryColor, SecondaryColor)
+                    )
+                )
+                .align(Alignment.TopCenter)
+        )
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .align(Alignment.Center)
+                .shadow(
+                    elevation = 16.dp,
+                    shape = RoundedCornerShape(24.dp),
+                    spotColor = PrimaryColor.copy(alpha = 0.2f)
+                ),
+            colors = CardDefaults.cardColors(containerColor = CardColor),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            shape = RoundedCornerShape(24.dp)
         ) {
-            Card(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 32.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = AccentCream
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                shape = RoundedCornerShape(16.dp)
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     IconButton(
                         onClick = onBack,
                         modifier = Modifier
                             .align(Alignment.Start)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(SoftBlue.copy(alpha = 0.1f))
-                            .semantics { contentDescription = "Back to main screen" }
+                            .size(40.dp)
+                            .semantics { contentDescription = "Back to role selection" }
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = null,
-                            tint = Color.DarkGray
+                            tint = TextColor
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(PrimaryColor.copy(alpha = 0.1f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Person,
+                            contentDescription = "Student icon",
+                            tint = PrimaryColor,
+                            modifier = Modifier.size(40.dp)
                         )
                     }
 
                     Text(
-                        text = "Student Login",
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 24.sp,
-                            color = Color.DarkGray
+                        text = "Student Portal",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = TextColor,
+                            fontFamily = FontFamily.SansSerif
                         ),
-                        modifier = Modifier
-                            .padding(bottom = 16.dp)
-                            .semantics { contentDescription = "Student Login Title" }
+                        modifier = Modifier.semantics { contentDescription = "Student Portal Title" }
                     )
 
-                    CustomTextField(
-                        modifier = Modifier.fillMaxWidth(),
+                    Text(
+                        text = "Sign in to access your student dashboard",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = TextColor.copy(alpha = 0.6f),
+                            fontFamily = FontFamily.SansSerif
+                        )
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    OutlinedTextField(
                         value = rollNo,
                         onValueChange = {
-                            rollNo = it
+                            if (it.length <= 20) rollNo = it
                             errorMessage = null
                         },
-                        label = "Roll Number",
-                        contentDescription = "Roll Number input field",
-                        isError = errorMessage != null
-
-                    )
-
-                    CustomTextField(
+                        label = {
+                            Text(
+                                "Roll Number",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = TextColor.copy(alpha = 0.8f),
+                                    fontFamily = FontFamily.SansSerif
+                                )
+                            )
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { datePickerDialog.show() },
-                        value = dateOfBirth,
-                        onValueChange = { /* Ignored, as field is read-only */ },
-                        label = "Date of Birth",
-                        contentDescription = "Date of Birth input field",
+                            .semantics { contentDescription = "Roll Number input field" },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent,
+                            focusedBorderColor = PrimaryColor,
+                            unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+                            cursorColor = PrimaryColor,
+                            focusedLabelColor = PrimaryColor,
+                            unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
+                            focusedTextColor = TextColor,
+                            unfocusedTextColor = TextColor
+                        ),
+                        singleLine = true,
                         isError = errorMessage != null,
+                        supportingText = errorMessage?.let { { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) } }
+                    )
+
+                    OutlinedTextField(
+                        value = dateOfBirth,
+                        onValueChange = { /* Read-only */ },
+                        label = {
+                            Text(
+                                "Date of Birth",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = TextColor.copy(alpha = 0.8f),
+                                    fontFamily = FontFamily.SansSerif
+                                )
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { datePickerDialog.show() }
+                            .semantics { contentDescription = "Date of Birth input field" },
                         readOnly = true,
                         trailingIcon = {
                             IconButton(onClick = { datePickerDialog.show() }) {
                                 Icon(
                                     imageVector = Icons.Default.DateRange,
                                     contentDescription = "Open date picker",
-                                    tint = Color.DarkGray
+                                    tint = TextColor.copy(alpha = 0.6f)
                                 )
                             }
-                        }
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent,
+                            focusedBorderColor = PrimaryColor,
+                            unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+                            cursorColor = PrimaryColor,
+                            focusedLabelColor = PrimaryColor,
+                            unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
+                            focusedTextColor = TextColor,
+                            unfocusedTextColor = TextColor
+                        ),
+                        singleLine = true,
+                        isError = errorMessage != null,
+                        supportingText = errorMessage?.let { { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) } }
                     )
+                }
 
-                    AnimatedVisibility(
-                        visible = errorMessage != null,
-                        enter = fadeIn(),
-                        exit = fadeOut()
-                    ) {
-                        errorMessage?.let {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.1f))
-                                    .padding(8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Error,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                                Text(
-                                    text = it,
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Medium
-                                    ),
-                                    modifier = Modifier.semantics { contentDescription = "Error: $it" }
-                                )
-                            }
-                        }
-                    }
-
-                    Button(
-                        onClick = {
+                Button(
+                    onClick = {
+                        isLoading = true
+                        kotlinx.coroutines.MainScope().launch {
+                            delay(1000) // Simulate validation
                             if (isFormValid) {
                                 try {
                                     val parsedDate = dateFormat.parse(dateOfBirth)
@@ -226,41 +290,57 @@ fun StudentScreen(
                                     errorMessage = "Invalid date format (use MM/dd/yyyy)"
                                 }
                             } else {
-                                errorMessage = "Please fill all fields"
+                                errorMessage = "Please fill all fields correctly"
                             }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                Brush.linearGradient(
-                                    colors = listOf(SoftBlue, SoftBlue.copy(alpha = 0.8f))
-                                )
-                            )
-                            .semantics { contentDescription = "Login button" },
-                        enabled = isFormValid,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent,
-                            contentColor = Color.White,
-                            disabledContainerColor = SoftBlue.copy(alpha = 0.3f),
-                            disabledContentColor = Color.White.copy(alpha = 0.5f)
-                        ),
-                        elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 2.dp,
-                            pressedElevation = 6.dp,
-                            disabledElevation = 0.dp
+                            isLoading = false
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .semantics { contentDescription = "Login button" },
+                    enabled = isFormValid && !isLoading,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryColor,
+                        contentColor = Color.White,
+                        disabledContainerColor = DisabledColor,
+                        disabledContentColor = Color.White.copy(alpha = 0.5f)
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 4.dp,
+                        pressedElevation = 8.dp,
+                        disabledElevation = 0.dp
+                    )
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White
                         )
-                    ) {
+                    } else {
                         Text(
-                            text = "Login",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 18.sp
-                            ),
-                            modifier = Modifier.padding(vertical = 8.dp)
+                            text = "LOGIN",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp,
+                                fontFamily = FontFamily.SansSerif
+                            )
                         )
                     }
                 }
+
+                Text(
+                    text = "Forgot roll number?",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = PrimaryColor,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = FontFamily.SansSerif
+                    ),
+                    modifier = Modifier
+                        .clickable { /* Handle forgot roll number */ }
+                        .semantics { contentDescription = "Forgot roll number link" }
+                )
             }
         }
     }
@@ -273,43 +353,15 @@ object DateUtils {
     }
 }
 
-@Composable
-fun CustomTextField(
-    modifier: Modifier = Modifier,
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    contentDescription: String,
-    isError: Boolean,
-    readOnly: Boolean = false,
-    trailingIcon: @Composable (() -> Unit)? = null
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp)) },
-        modifier = modifier
-            .fillMaxWidth()
-            .semantics { this.contentDescription = contentDescription },
-        isError = isError,
-        singleLine = true,
-        readOnly = readOnly,
-        trailingIcon = trailingIcon,
-        shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = SoftBlue,
-            unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-            errorBorderColor = MaterialTheme.colorScheme.error
-        )
-    )
-}
-
-@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, widthDp = 360, heightDp = 640, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO)
+@Preview(showBackground = true, widthDp = 720, heightDp = 1280, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun StudentScreenPreview() {
-    StudentScreen(
-        modifier = Modifier,
-        onLogin = {},
-        onBack = {}
-    )
+    MaterialTheme {
+        StudentScreen(
+            modifier = Modifier,
+            onLogin = {},
+            onBack = {}
+        )
+    }
 }

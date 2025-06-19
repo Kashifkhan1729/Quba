@@ -1,47 +1,41 @@
 package com.example.quba.ui.screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-// Define colors
-val DarkBlue = Color(0xFF1976D2) // For gradient
+val PrimaryColor = Color(0xFF4361EE)
+private val SecondaryColor = Color(0xFF3F37C9)
+private val BackgroundColor = Color(0xFFF8F9FA)
+private val CardColor = Color.White
+private val TextColor = Color(0xFF212529)
+val ErrorColor = Color(0xFFE63946)
+private val DisabledColor = Color(0xFFADB5BD)
 
 @Composable
 fun AdminScreen(
@@ -52,191 +46,253 @@ fun AdminScreen(
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val isFormValid = username.isNotBlank() && password.isNotBlank()
+    var passwordVisible by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
+    val isFormValid = username.matches(Regex("^[a-zA-Z0-9_]{3,}$")) && password.length >= 6
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(SoftGrey)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(BackgroundColor, Color.White)
+                )
+            )
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(PrimaryColor, SecondaryColor)
+                    )
+                )
+                .align(Alignment.TopCenter)
+        )
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 32.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = AccentCream
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            shape = RoundedCornerShape(16.dp)
+                .padding(horizontal = 24.dp)
+                .align(Alignment.Center)
+                .shadow(
+                    elevation = 16.dp,
+                    shape = RoundedCornerShape(24.dp),
+                    spotColor = PrimaryColor.copy(alpha = 0.2f)
+                ),
+            colors = CardDefaults.cardColors(containerColor = CardColor),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            shape = RoundedCornerShape(24.dp)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(SoftBlue.copy(alpha = 0.1f))
-                        .semantics { contentDescription = "Back button" }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = null,
-                        tint = Color.DarkGray
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier
+                            .align(Alignment.Start)
+                            .size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back to role selection",
+                            tint = TextColor
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(PrimaryColor.copy(alpha = 0.1f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.AdminPanelSettings,
+                            contentDescription = "Admin icon",
+                            tint = PrimaryColor,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+
+                    Text(
+                        text = "Admin Portal",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = TextColor,
+                            fontFamily = FontFamily.SansSerif
+                        )
+                    )
+
+                    Text(
+                        text = "Sign in to access the admin dashboard",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = TextColor.copy(alpha = 0.6f),
+                            fontFamily = FontFamily.SansSerif
+                        )
                     )
                 }
 
-                Text(
-                    text = "Admin Login",
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 24.sp,
-                        color = Color.DarkGray
-                    ),
-                    modifier = Modifier
-                        .padding(bottom = 16.dp)
-                        .semantics { contentDescription = "Admin login title" }
-                )
-
-                CustomTextField(
-                    value = username,
-                    onValueChange = {
-                        username = it
-                        errorMessage = null
-                    },
-                    label = "Username",
-                    contentDescription = "Username field",
-                    isError = errorMessage != null
-                )
-
-                CustomTextField(
-                    value = password,
-                    onValueChange = {
-                        password = it
-                        errorMessage = null
-                    },
-                    label = "Password",
-                    contentDescription = "Password field",
-                    isError = errorMessage != null,
-                    isPassword = true
-                )
-
-                errorMessage?.let {
-                    Text(
-                        text = it,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = {
+                            if (it.length <= 20) username = it
+                        },
+                        label = {
+                            Text(
+                                "Username",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = TextColor.copy(alpha = 0.8f)
+                                )
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent,
+                            focusedBorderColor = PrimaryColor,
+                            unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+                            cursorColor = PrimaryColor,
+                            focusedLabelColor = PrimaryColor,
+                            unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
+                            focusedTextColor = TextColor,
+                            unfocusedTextColor = TextColor
                         ),
-                        modifier = Modifier
-                            .padding(top = 8.dp)
-                            .semantics { contentDescription = "Error message: $it" }
+                        singleLine = true,
+                        isError = errorMessage != null,
+                        supportingText = errorMessage?.let { { Text(it, color = ErrorColor) } }
+                    )
+
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = {
+                            if (it.length <= 20) password = it
+                        },
+                        label = {
+                            Text(
+                                "Password",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = TextColor.copy(alpha = 0.8f)
+                                )
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(
+                                onClick = { passwordVisible = !passwordVisible }
+                            ) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                    contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                                    tint = TextColor.copy(alpha = 0.6f)
+                                )
+                            }
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent,
+                            focusedBorderColor = PrimaryColor,
+                            unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+                            cursorColor = PrimaryColor,
+                            focusedLabelColor = PrimaryColor,
+                            unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
+                            focusedTextColor = TextColor,
+                            unfocusedTextColor = TextColor
+                        ),
+                        singleLine = true,
+                        isError = errorMessage != null,
+                        supportingText = errorMessage?.let { { Text(it, color = ErrorColor) } }
                     )
                 }
 
                 Button(
                     onClick = {
-                        if (username == "admin" && password == "securepassword") {
-                            onLoginSuccess("Admin")
-                        } else {
-                            errorMessage = "Invalid credentials"
+                        isLoading = true
+                        kotlinx.coroutines.MainScope().launch {
+                            delay(1000) // Simulate API call
+                            if (username == "admin" && password == "securepassword") {
+                                onLoginSuccess("Admin")
+                            } else {
+                                errorMessage = "Invalid username or password"
+                            }
+                            isLoading = false
                         }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .semantics { contentDescription = "Login button" },
-                    enabled = isFormValid,
+                        .height(50.dp),
+                    enabled = isFormValid && !isLoading,
+                    shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        disabledContainerColor = SoftBlue.copy(alpha = 0.3f)
+                        containerColor = PrimaryColor,
+                        contentColor = Color.White,
+                        disabledContainerColor = DisabledColor,
+                        disabledContentColor = Color.White
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 4.dp,
+                        pressedElevation = 8.dp,
+                        disabledElevation = 0.dp
                     )
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                Brush.horizontalGradient(
-                                    colors = listOf(SoftBlue, DarkBlue)
-                                )
-                            )
-                            .padding(vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Login",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 18.sp
-                            ),
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
                             color = Color.White
+                        )
+                    } else {
+                        Text(
+                            text = "LOGIN",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp
+                            )
                         )
                     }
                 }
+
+                Text(
+                    text = "Forgot password?",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = PrimaryColor,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = FontFamily.SansSerif
+                    ),
+                    modifier = Modifier
+                        .clickable { /* Handle forgot password */ }
+                        .semantics { contentDescription = "Forgot password link" }
+                )
             }
         }
     }
 }
 
-@Composable
-fun CustomTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    contentDescription: String,
-    isError: Boolean,
-    modifier: Modifier = Modifier,
-    isPassword: Boolean = false
-) {
-    var showPassword by remember { mutableStateOf(false) }
-
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp)) },
-        modifier = modifier
-            .fillMaxWidth()
-            .semantics { this.contentDescription = contentDescription },
-        isError = isError,
-        visualTransformation = if (isPassword && !showPassword) PasswordVisualTransformation() else VisualTransformation.None,
-        trailingIcon = {
-            if (isPassword) {
-                IconButton(
-                    onClick = { showPassword = !showPassword },
-                    modifier = Modifier.semantics {
-                       val iconDescription = if (showPassword) "Hide password" else "Show password"
-                        this.contentDescription = iconDescription
-                    }
-                ) {
-                    Icon(
-                        imageVector = if (showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                        contentDescription = null,
-                        tint = if (isError) MaterialTheme.colorScheme.error else Color.Gray
-                    )
-                }
-            }
-        },
-        shape = RoundedCornerShape(12.dp),
-        colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = SoftBlue,
-            unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-            errorBorderColor = MaterialTheme.colorScheme.error,
-            errorTrailingIconColor = MaterialTheme.colorScheme.error
-        )
-    )
-}
-
-@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, widthDp = 360, heightDp = 640, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO)
+@Preview(showBackground = true, widthDp = 720, heightDp = 1280, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun AdminScreenPreview() {
-    AdminScreen(
-        onBack = {},
-        onLoginSuccess = {}
-    )
+    MaterialTheme {
+        AdminScreen(
+            onBack = {},
+            onLoginSuccess = {}
+        )
+    }
 }

@@ -1,16 +1,14 @@
-
 package com.example.quba.ui.screen
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -18,18 +16,29 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
-    public var loc: Int =0
-    public var sub: String = ""
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+// Colors from AdminScreen
+private val SecondaryColor = Color(0xFF3F37C9)
+private val BackgroundColor = Color(0xFFF8F9FA)
+private val CardColor = Color.White
+private val TextColor = Color(0xFF212529)
+
+private val DisabledColor = Color(0xFFADB5BD)
+
 @Composable
 fun TeacherScreen(
     modifier: Modifier = Modifier,
@@ -43,68 +52,120 @@ fun TeacherScreen(
     var showPassword by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val isFormValid = className.isNotBlank() && username.isNotBlank() && password.isNotBlank()
+    var isLoading by remember { mutableStateOf(false) }
+    val isFormValid = className.isNotBlank() && username.matches(Regex("^[A-Za-z0-9_]{3,}$")) && password.length >= 6
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(SoftGrey)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(BackgroundColor, Color.White)
+                )
+            )
     ) {
-        AnimatedVisibility(
-            visible = true,
-            enter = fadeIn(),
-            exit = fadeOut()
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(PrimaryColor, SecondaryColor)
+                    )
+                )
+                .align(Alignment.TopCenter)
+        )
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .align(Alignment.Center)
+                .shadow(
+                    elevation = 16.dp,
+                    shape = RoundedCornerShape(24.dp),
+                    spotColor = PrimaryColor.copy(alpha = 0.2f)
+                ),
+            colors = CardDefaults.cardColors(containerColor = CardColor),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            shape = RoundedCornerShape(24.dp)
         ) {
-            Card(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 32.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = AccentCream
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                shape = RoundedCornerShape(16.dp)
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     IconButton(
                         onClick = onBack,
                         modifier = Modifier
                             .align(Alignment.Start)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(SoftBlue.copy(alpha = 0.1f))
-                            .semantics { contentDescription = "Back to main screen" }
+                            .size(40.dp)
+                            .semantics { contentDescription = "Back to role selection" }
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = null,
-                            tint = Color.DarkGray
+                            tint = TextColor
+                        )
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(PrimaryColor.copy(alpha = 0.1f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.School,
+                            contentDescription = "Teacher icon",
+                            tint = PrimaryColor,
+                            modifier = Modifier.size(40.dp)
                         )
                     }
 
                     Text(
-                        text = "Teacher Login",
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 24.sp,
-                            color = Color.DarkGray
+                        text = "Teacher Portal",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = TextColor,
+                            fontFamily = FontFamily.SansSerif
                         ),
-                        modifier = Modifier
-                            .padding(bottom = 16.dp)
-                            .semantics { contentDescription = "Teacher Login Title" }
+                        modifier = Modifier.semantics { contentDescription = "Teacher Portal Title" }
                     )
 
-                    // Class Dropdown
+                    Text(
+                        text = "Sign in to access your teacher dashboard",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = TextColor.copy(alpha = 0.6f),
+                            fontFamily = FontFamily.SansSerif
+                        )
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                     Box(modifier = Modifier.fillMaxWidth()) {
                         OutlinedTextField(
                             value = className,
                             onValueChange = {},
-                            label = { Text("Class Name", style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp)) },
+                            label = {
+                                Text(
+                                    "Class Name",
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        color = TextColor.copy(alpha = 0.8f),
+                                        fontFamily = FontFamily.SansSerif
+                                    )
+                                )
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { contentDescription = "Class selection field" },
@@ -114,16 +175,25 @@ fun TeacherScreen(
                                     Icon(
                                         imageVector = if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
                                         contentDescription = "Toggle class dropdown",
-                                        tint = Color.DarkGray
+                                        tint = TextColor.copy(alpha = 0.6f)
                                     )
                                 }
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = SoftBlue,
-                                unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-                                errorBorderColor = MaterialTheme.colorScheme.error
-                            )
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
+                                focusedBorderColor = PrimaryColor,
+                                unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+                                cursorColor = PrimaryColor,
+                                focusedLabelColor = PrimaryColor,
+                                unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
+                                focusedTextColor = TextColor,
+                                unfocusedTextColor = TextColor
+                            ),
+                            isError = errorMessage != null,
+                            supportingText = errorMessage?.let { { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) } }
                         )
 
                         DropdownMenu(
@@ -131,15 +201,19 @@ fun TeacherScreen(
                             onDismissRequest = { expanded = false },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(
-                                    Brush.linearGradient(
-                                        colors = listOf(AccentCream, AccentCream.copy(alpha = 0.9f))
-                                    )
-                                )
+                                .background(CardColor)
                         ) {
                             availableClasses.forEach { classItem ->
                                 DropdownMenuItem(
-                                    text = { Text(classItem, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp, color = Color.DarkGray)) },
+                                    text = {
+                                        Text(
+                                            classItem,
+                                            style = MaterialTheme.typography.bodyLarge.copy(
+                                                color = TextColor,
+                                                fontFamily = FontFamily.SansSerif
+                                            )
+                                        )
+                                    },
                                     onClick = {
                                         className = classItem
                                         expanded = false
@@ -148,7 +222,7 @@ fun TeacherScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .background(
-                                            if (className == classItem) SoftBlue.copy(alpha = 0.1f) else Color.Transparent
+                                            if (className == classItem) PrimaryColor.copy(alpha = 0.1f) else Color.Transparent
                                         )
                                         .semantics { contentDescription = "Select $classItem" }
                                 )
@@ -156,156 +230,162 @@ fun TeacherScreen(
                         }
                     }
 
-                    CustomTextField(
-                        modifier = Modifier.fillMaxWidth(),
+                    OutlinedTextField(
                         value = username,
                         onValueChange = {
-                            username = it
+                            if (it.length <= 20) username = it
                             errorMessage = null
                         },
-                        label = "Username",
-                        contentDescription = "Username input field",
-                        isError = errorMessage != null
+                        label = {
+                            Text(
+                                "Username",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = TextColor.copy(alpha = 0.8f),
+                                    fontFamily = FontFamily.SansSerif
+                                )
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { contentDescription = "Username input field" },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent,
+                            focusedBorderColor = PrimaryColor,
+                            unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+                            cursorColor = PrimaryColor,
+                            focusedLabelColor = PrimaryColor,
+                            unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
+                            focusedTextColor = TextColor,
+                            unfocusedTextColor = TextColor
+                        ),
+                        singleLine = true,
+                        isError = errorMessage != null,
+                        supportingText = errorMessage?.let { { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) } }
                     )
 
-                    CustomTextField(
-                        modifier = Modifier.fillMaxWidth(),
+                    OutlinedTextField(
                         value = password,
                         onValueChange = {
-                            password = it
+                            if (it.length <= 20) password = it
                             errorMessage = null
                         },
-                        label = "Password",
-                        contentDescription = "Password input field",
-                        isError = errorMessage != null,
+                        label = {
+                            Text(
+                                "Password",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = TextColor.copy(alpha = 0.8f),
+                                    fontFamily = FontFamily.SansSerif
+                                )
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { contentDescription = "Password input field" },
                         visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             IconButton(onClick = { showPassword = !showPassword }) {
                                 Icon(
                                     imageVector = if (showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
                                     contentDescription = if (showPassword) "Hide password" else "Show password",
-                                    tint = Color.DarkGray
+                                    tint = TextColor.copy(alpha = 0.6f)
                                 )
                             }
-                        }
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent,
+                            focusedBorderColor = PrimaryColor,
+                            unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+                            cursorColor = PrimaryColor,
+                            focusedLabelColor = PrimaryColor,
+                            unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
+                            focusedTextColor = TextColor,
+                            unfocusedTextColor = TextColor
+                        ),
+                        singleLine = true,
+                        isError = errorMessage != null,
+                        supportingText = errorMessage?.let { { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) } }
                     )
+                }
 
-                    AnimatedVisibility(
-                        visible = errorMessage != null,
-                        enter = fadeIn(),
-                        exit = fadeOut()
-                    ) {
-                        errorMessage?.let {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.1f))
-                                    .padding(8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Error,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                                Text(
-                                    text = it,
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodyMedium.copy(
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Medium
-                                    ),
-                                    modifier = Modifier.semantics { contentDescription = "Error: $it" }
-                                )
-                            }
-                        }
-                    }
-
-                    Button(
-                        onClick = {
-                            // Replace with secure authentication in production
-                            if (className.isNotBlank() && username == "teacher" && password == "password") {
+                Button(
+                    onClick = {
+                        isLoading = true
+                        kotlinx.coroutines.MainScope().launch {
+                            delay(1000) // Simulate authentication
+                            if (isFormValid && username == "teacher" && password == "password") {
                                 onLoginSuccess(className)
-                                loc=1
-                                sub = className
                             } else {
                                 errorMessage = "Invalid credentials or missing class"
                             }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                Brush.linearGradient(
-                                    colors = listOf(SoftBlue, SoftBlue.copy(alpha = 0.8f))
-                                )
-                            )
-                            .semantics { contentDescription = "Login button" },
-                        enabled = isFormValid,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent,
-                            contentColor = Color.White,
-                            disabledContainerColor = SoftBlue.copy(alpha = 0.3f),
-                            disabledContentColor = Color.White.copy(alpha = 0.5f)
-                        ),
-                        elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 2.dp,
-                            pressedElevation = 6.dp,
-                            disabledElevation = 0.dp
+                            isLoading = false
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .semantics { contentDescription = "Login button" },
+                    enabled = isFormValid && !isLoading,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryColor,
+                        contentColor = Color.White,
+                        disabledContainerColor = DisabledColor,
+                        disabledContentColor = Color.White.copy(alpha = 0.5f)
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 4.dp,
+                        pressedElevation = 8.dp,
+                        disabledElevation = 0.dp
+                    )
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White
                         )
-                    ) {
+                    } else {
                         Text(
-                            text = "Login",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 18.sp
-                            ),
-                            modifier = Modifier.padding(vertical = 8.dp)
+                            text = "LOGIN",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.sp,
+                                fontFamily = FontFamily.SansSerif
+                            )
                         )
                     }
                 }
+
+                Text(
+                    text = "Forgot credentials?",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = PrimaryColor,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = FontFamily.SansSerif
+                    ),
+                    modifier = Modifier
+                        .clickable { /* Handle forgot credentials */ }
+                        .semantics { contentDescription = "Forgot credentials link" }
+                )
             }
         }
     }
 }
 
-@Composable
-fun CustomTextField(
-    modifier: Modifier = Modifier,
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    contentDescription: String,
-    isError: Boolean,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
-    trailingIcon: @Composable (() -> Unit)? = null
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp)) },
-        modifier = modifier
-            .fillMaxWidth()
-            .semantics { this.contentDescription = contentDescription },
-        isError = isError,
-        visualTransformation = visualTransformation,
-        trailingIcon = trailingIcon,
-        shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = SoftBlue,
-            unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-            errorBorderColor = MaterialTheme.colorScheme.error
-        )
-    )
-}
-@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, widthDp = 360, heightDp = 640, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO)
+@Preview(showBackground = true, widthDp = 720, heightDp = 1280, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun TeacherScreenPreview() {
-    TeacherScreen(
-        modifier = Modifier,
-        onBack = {},
-        onLoginSuccess = {}
-    )
+    MaterialTheme {
+        TeacherScreen(
+            modifier = Modifier,
+            onBack = {},
+            onLoginSuccess = {}
+        )
+    }
 }

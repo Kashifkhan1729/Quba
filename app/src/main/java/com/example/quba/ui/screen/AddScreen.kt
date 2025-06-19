@@ -36,9 +36,9 @@ import java.util.Locale
 import android.app.DatePickerDialog
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
+import com.example.quba.ui.theme.*
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddStudentScreen(
     modifier: Modifier = Modifier,

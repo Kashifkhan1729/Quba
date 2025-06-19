@@ -50,6 +50,8 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import com.example.quba.utils.StudentViewModel
+import com.example.quba.*
+import com.example.quba.ui.theme.*
 
 
 data class Student(val id: Int, val name: String, val className: String)

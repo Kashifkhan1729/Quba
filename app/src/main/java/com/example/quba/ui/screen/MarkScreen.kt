@@ -38,6 +38,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.ui.text.input.KeyboardType
+import com.example.quba.loc
+import com.example.quba.sub
+import com.example.quba.ui.theme.*
 
 
 @OptIn(ExperimentalMaterial3Api::class)
