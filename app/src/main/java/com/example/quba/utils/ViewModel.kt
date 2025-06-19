@@ -51,4 +51,8 @@ class StudentViewModel : ViewModel() {
             }
         }
     }
+
+    fun addStudent(student: Student) {
+
+    }
 }
