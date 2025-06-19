@@ -1,4 +1,4 @@
-
+import org.jetbrains.kotlin.gradle.tasks.Kapt
 
 plugins {
     alias(libs.plugins.android.application)
@@ -43,9 +43,11 @@ android {
 }
 
 dependencies {
-
+    implementation (libs.hilt.android)
+    implementation (libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.core.ktx)
-
+    implementation(libs.kernel)
+    implementation(libs.layout)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -53,26 +55,27 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.firebase.analytics)
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.1")
-
+    implementation(platform(libs.androidx.compose.bom.v20250600))
+    implementation (libs.material3)
+    implementation (libs.androidx.material.icons.extended)
+    implementation(libs.firebase.auth)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+    implementation(libs.firebase.database)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation("androidx.compose.material:material-icons-extended-android:1.7.8")
+    // Import the BoM for the Firebase platform
+    implementation (platform(libs.firebase.bom))
 
-        // Import the BoM for the Firebase platform
-        implementation (platform("com.google.firebase:firebase-bom:33.15.0"))
-
-        // Declare the dependencies for the desired Firebase products without specifying versions
-        // For example, declare the dependencies for Firebase Authentication and Cloud Firestore
-    implementation("com.google.firebase:firebase-firestore-ktx:25.1.4")
-    implementation ("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-database-ktx")
-        implementation ("com.google.firebase:firebase-firestore")
-    implementation("com.google.dagger:hilt-android:2.56.2")
+    // Declare the dependencies for the desired Firebase products without specifying versions
+    // For example, declare the dependencies for Firebase Authentication and Cloud Firestore
+    implementation (libs.google.firebase.auth)
+    implementation (libs.firebase.firestore)
+    implementation(libs.firebase.firestore.ktx)
     implementation ("androidx.compose.runtime:runtime-livedata:1.8.2")
 
 }
