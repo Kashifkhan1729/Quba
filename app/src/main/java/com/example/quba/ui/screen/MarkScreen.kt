@@ -684,45 +684,50 @@ fun SubjectMarksInput(
     onHyFilled: () -> Unit,
     onAnnualFilled: () -> Unit
 ) {
-//    var halfYearly by remember { mutableStateOf("") }
-//    var annual by remember { mutableStateOf("") }
+    var halfYearly by remember { mutableStateOf(subjectMarks[subject]?.first?.toString() ?: "") }
+    var annual by remember { mutableStateOf(subjectMarks[subject]?.second?.toString() ?: "") }
     var hyError by remember { mutableStateOf<String?>(null) }
     var annualError by remember { mutableStateOf<String?>(null) }
     val focusManager = LocalFocusManager.current
-    var halfYearly by remember {
-        mutableStateOf(subjectMarks[subject]?.first?.toString() ?: "")
-    }
-    var annual by remember {
-        mutableStateOf(subjectMarks[subject]?.second?.toString() ?: "")
+
+    // Update subjectMarks when the composable is initialized
+    LaunchedEffect(subject) {
+        if (!subjectMarks.containsKey(subject)) {
+            subjectMarks[subject] = Pair(0, 0) // Initialize with default values
+        }
     }
 
     LaunchedEffect(halfYearly) {
-        if (halfYearly.length == 2) {
+        if (halfYearly.isNotEmpty()) {
             val value = halfYearly.toIntOrNull() ?: 0
             if (value > 50) {
                 hyError = "Max 50"
             } else {
                 hyError = null
-                delay(50)
-                nextFocusRequester?.requestFocus()
-                onHyFilled()
+                if (halfYearly.length == 2) {
+                    // Only request focus if nextFocusRequester is valid
+                    if (nextFocusRequester != null) {
+                        nextFocusRequester.requestFocus()
+                    }
+                    onHyFilled()
+                }
             }
-        } else {
-            hyError = null
+            onMarksChanged(halfYearly.toIntOrNull() ?: 0, annual.toIntOrNull() ?: 0)
         }
     }
 
     LaunchedEffect(annual) {
-        if (annual.length == 2) {
+        if (annual.isNotEmpty()) {
             val value = annual.toIntOrNull() ?: 0
             if (value > 50) {
                 annualError = "Max 50"
             } else {
                 annualError = null
-                onAnnualFilled()
+                if (annual.length == 2) {
+                    onAnnualFilled()
+                }
             }
-        } else {
-            annualError = null
+            onMarksChanged(halfYearly.toIntOrNull() ?: 0, annual.toIntOrNull() ?: 0)
         }
     }
 
@@ -749,10 +754,9 @@ fun SubjectMarksInput(
             Column(modifier = Modifier.weight(1f)) {
                 OutlinedTextField(
                     value = halfYearly,
-                    onValueChange = {
-                        if (it.length <= 2 && (it.isEmpty() || it.toIntOrNull() != null)) {
-                            halfYearly = it
-                            onMarksChanged(it.toIntOrNull() ?: 0, annual.toIntOrNull() ?: 0)
+                    onValueChange = { input ->
+                        if (input.length <= 2 && (input.isEmpty() || input.toIntOrNull() != null)) {
+                            halfYearly = input
                         }
                     },
                     label = {
@@ -776,7 +780,7 @@ fun SubjectMarksInput(
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Number,
-                        imeAction = if (annual.length < 2) ImeAction.Next else ImeAction.Done
+                        imeAction = if (annual.isEmpty()) ImeAction.Next else ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(
                         onNext = { nextFocusRequester?.requestFocus() },
@@ -801,10 +805,9 @@ fun SubjectMarksInput(
             Column(modifier = Modifier.weight(1f)) {
                 OutlinedTextField(
                     value = annual,
-                    onValueChange = {
-                        if (it.length <= 2 && (it.isEmpty() || it.toIntOrNull() != null)) {
-                            annual = it
-                            onMarksChanged(halfYearly.toIntOrNull() ?: 0, it.toIntOrNull() ?: 0)
+                    onValueChange = { input ->
+                        if (input.length <= 2 && (input.isEmpty() || input.toIntOrNull() != null)) {
+                            annual = input
                         }
                     },
                     label = {
@@ -830,11 +833,7 @@ fun SubjectMarksInput(
                         imeAction = if (subjectIndex < totalSubjects - 1) ImeAction.Next else ImeAction.Done
                     ),
                     keyboardActions = KeyboardActions(
-                        onNext = {
-                            if (annual.length == 2) {
-                                nextFocusRequester?.requestFocus()
-                            }
-                        },
+                        onNext = { nextFocusRequester?.requestFocus() },
                         onDone = { focusManager.clearFocus() }
                     ),
                     shape = RoundedCornerShape(12.dp),
