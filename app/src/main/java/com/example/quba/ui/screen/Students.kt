@@ -1,0 +1,25 @@
+package com.example.quba.ui.screen
+data class Student(
+    val id: Int = 0,
+    val name: String? = null,
+    val classname: String? = null,
+    val dateOfBirth: String? = null,
+    val gender: String? = null,
+    val nationality: String? = null,
+    val aadhaarNumber: String? = null,
+    val fatherName: String? = null,
+    val motherName: String? = null,
+    val guardianName: String? = null,
+    val contactNumber: String? = null,
+    val emailAddress: String? = null,
+    val fatherOccupation: String? = null,
+    val motherOccupation: String? = null,
+    val address: String? = null,
+    val previousSchoolName: String? = null,
+    val previousSchoolAddress: String? = null,
+    val category: String? = null,
+    val religion: String? = null,
+    val motherTongue: String? = null,
+    val siblingsInSchool: String? = null,
+    val transport: String? = null
+)

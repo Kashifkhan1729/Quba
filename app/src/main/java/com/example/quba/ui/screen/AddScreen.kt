@@ -38,6 +38,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import com.example.quba.utils.StudentViewModel
+import com.example.quba.ui.screen.Student
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -56,7 +57,7 @@ fun AddStudentScreen(
     onSaveSuccess: () -> Unit,
     viewModel: StudentViewModel = viewModel()
 ) {
-    val classes = listOf("Nursery", "KG", "1st", "2nd", "3rd", "4th", "5th")
+    val classes = listOf("Nur", "KG", "1st", "2nd", "3rd", "4th", "5th")
     val genders = listOf("Male", "Female", "Other")
     val categories = listOf("General", "OBC", "SC", "ST", "Other")
     val transportOptions = listOf("School Bus", "Private", "Other")
@@ -73,7 +74,7 @@ fun AddStudentScreen(
     var fatherOccupation by remember { mutableStateOf("") }
     var motherOccupation by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
-    var selectedClass by remember { mutableStateOf("Nursery") }
+    var selectedClass by remember { mutableStateOf("Nur") }
     var previousSchoolName by remember { mutableStateOf("") }
     var previousSchoolAddress by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("General") }
@@ -85,26 +86,23 @@ fun AddStudentScreen(
     var isLoadingSave by remember { mutableStateOf(false) }
     var isLoadingClear by remember { mutableStateOf(false) }
     var showClearDialog by remember { mutableStateOf(false) }
-    val isFormValid = studentName.isNotBlank() && dateOfBirth.isNotBlank() && selectedGender.isNotBlank() &&
-            nationality.isNotBlank() && fatherName.isNotBlank() && motherName.isNotBlank() &&
-            contactNumber.isNotBlank() && emailAddress.isNotBlank() && fatherOccupation.isNotBlank() &&
-            motherOccupation.isNotBlank() && address.isNotBlank() && selectedClass.isNotBlank() &&
-            selectedCategory.isNotBlank() && religion.isNotBlank() && motherTongue.isNotBlank() &&
-            selectedTransport.isNotBlank() &&
-            contactNumber.matches(Regex("^[0-9]{10}$")) &&
-            (aadhaarNumber.isEmpty() || aadhaarNumber.matches(Regex("^[0-9]{12}$"))) &&
-            emailAddress.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) &&
-            studentName.matches(Regex("^[A-Za-z\\s]*$")) &&
-            nationality.matches(Regex("^[A-Za-z\\s]*$")) &&
-            fatherName.matches(Regex("^[A-Za-z\\s]*$")) &&
-            motherName.matches(Regex("^[A-Za-z\\s]*$")) &&
-            (guardianName.isEmpty() || guardianName.matches(Regex("^[A-Za-z\\s]*$"))) &&
-            fatherOccupation.matches(Regex("^[A-Za-z\\s]*$")) &&
-            motherOccupation.matches(Regex("^[A-Za-z\\s]*$")) &&
-            religion.matches(Regex("^[A-Za-z\\s]*$")) &&
-            motherTongue.matches(Regex("^[A-Za-z\\s]*$"))
 
-    // Clear confirmation dialog
+    // Only name and class are required
+    val isFormValid = studentName.isNotBlank() && selectedClass.isNotBlank() &&
+            (contactNumber.isEmpty() || contactNumber.matches(Regex("^[0-9]{10}$"))) &&
+            (aadhaarNumber.isEmpty() || aadhaarNumber.matches(Regex("^[0-9]{12}$"))) &&
+            (emailAddress.isEmpty() || emailAddress.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"))) &&
+            (studentName.isEmpty() || studentName.matches(Regex("^[A-Za-z\\s]*$"))) &&
+            (nationality.isEmpty() || nationality.matches(Regex("^[A-Za-z\\s]*$"))) &&
+            (fatherName.isEmpty() || fatherName.matches(Regex("^[A-Za-z\\s]*$"))) &&
+            (motherName.isEmpty() || motherName.matches(Regex("^[A-Za-z\\s]*$"))) &&
+            (guardianName.isEmpty() || guardianName.matches(Regex("^[A-Za-z\\s]*$"))) &&
+            (fatherOccupation.isEmpty() || fatherOccupation.matches(Regex("^[A-Za-z\\s]*$"))) &&
+            (motherOccupation.isEmpty() || motherOccupation.matches(Regex("^[A-Za-z\\s]*$"))) &&
+            (religion.isEmpty() || religion.matches(Regex("^[A-Za-z\\s]*$"))) &&
+            (motherTongue.isEmpty() || motherTongue.matches(Regex("^[A-Za-z\\s]*$")))
+
+    // Clear confirmation dialog (unchanged)
     if (showClearDialog) {
         Dialog(
             onDismissRequest = { showClearDialog = false }
@@ -151,7 +149,7 @@ fun AddStudentScreen(
                             onClick = {
                                 isLoadingClear = true
                                 kotlinx.coroutines.MainScope().launch {
-                                    delay(1000) // Simulate clearing
+                                    delay(1000)
                                     studentName = ""
                                     dateOfBirth = ""
                                     selectedGender = "Male"
@@ -165,7 +163,7 @@ fun AddStudentScreen(
                                     fatherOccupation = ""
                                     motherOccupation = ""
                                     address = ""
-                                    selectedClass = "Nursery"
+                                    selectedClass = "Nur"
                                     previousSchoolName = ""
                                     previousSchoolAddress = ""
                                     selectedCategory = "General"
@@ -308,14 +306,18 @@ fun AddStudentScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text(text = "Student Details", style = MaterialTheme.typography.bodyLarge.copy(
+                        Text(
+                            text = "Student Details",
+                            style = MaterialTheme.typography.bodyLarge.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = TextColor,
                                 fontFamily = FontFamily.SansSerif
-                            ), modifier = Modifier
+                            ),
+                            modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 4.dp),
-                            textAlign = TextAlign.Start)
+                            textAlign = TextAlign.Start
+                        )
 
                         OutlinedTextField(
                             value = studentName,
@@ -367,7 +369,7 @@ fun AddStudentScreen(
                                 dateOfBirth = it
                                 errorMessage = null
                             },
-                            isError = errorMessage != null && dateOfBirth.isBlank()
+                            isError = false // Date of birth is optional
                         )
 
                         var genderExpanded by remember { mutableStateOf(false) }
@@ -455,7 +457,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Nationality",
+                                    "Nationality (Optional)",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -465,10 +467,6 @@ fun AddStudentScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { contentDescription = "Nationality input field" },
-                            isError = errorMessage != null && nationality.isBlank(),
-                            supportingText = errorMessage?.takeIf { nationality.isBlank() }?.let {
-                                { Text("Required", color = ErrorColor, fontFamily = FontFamily.SansSerif) }
-                            },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Text,
@@ -554,7 +552,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Father's Name",
+                                    "Father's Name (Optional)",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -564,10 +562,6 @@ fun AddStudentScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { contentDescription = "Father's Name input field" },
-                            isError = errorMessage != null && fatherName.isBlank(),
-                            supportingText = errorMessage?.takeIf { fatherName.isBlank() }?.let {
-                                { Text("Required", color = ErrorColor, fontFamily = FontFamily.SansSerif) }
-                            },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Text,
@@ -597,7 +591,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Mother's Name",
+                                    "Mother's Name (Optional)",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -607,10 +601,6 @@ fun AddStudentScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { contentDescription = "Mother's Name input field" },
-                            isError = errorMessage != null && motherName.isBlank(),
-                            supportingText = errorMessage?.takeIf { motherName.isBlank() }?.let {
-                                { Text("Required", color = ErrorColor, fontFamily = FontFamily.SansSerif) }
-                            },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Text,
@@ -679,7 +669,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Contact Number",
+                                    "Contact Number (Optional)",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -689,8 +679,8 @@ fun AddStudentScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { contentDescription = "Contact Number input field" },
-                            isError = errorMessage != null && !contactNumber.matches(Regex("^[0-9]{10}$")),
-                            supportingText = errorMessage?.takeIf { !contactNumber.matches(Regex("^[0-9]{10}$")) }?.let {
+                            isError = errorMessage != null && contactNumber.isNotEmpty() && !contactNumber.matches(Regex("^[0-9]{10}$")),
+                            supportingText = errorMessage?.takeIf { contactNumber.isNotEmpty() && !contactNumber.matches(Regex("^[0-9]{10}$")) }?.let {
                                 { Text("Must be 10 digits", color = ErrorColor, fontFamily = FontFamily.SansSerif) }
                             },
                             singleLine = true,
@@ -722,7 +712,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Email Address",
+                                    "Email Address (Optional)",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -732,8 +722,8 @@ fun AddStudentScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { contentDescription = "Email Address input field" },
-                            isError = errorMessage != null && !emailAddress.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")),
-                            supportingText = errorMessage?.takeIf { !emailAddress.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) }?.let {
+                            isError = errorMessage != null && emailAddress.isNotEmpty() && !emailAddress.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")),
+                            supportingText = errorMessage?.takeIf { emailAddress.isNotEmpty() && !emailAddress.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) }?.let {
                                 { Text("Invalid email", color = ErrorColor, fontFamily = FontFamily.SansSerif) }
                             },
                             singleLine = true,
@@ -765,7 +755,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Father's Occupation",
+                                    "Father's Occupation (Optional)",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -775,10 +765,6 @@ fun AddStudentScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { contentDescription = "Father's Occupation input field" },
-                            isError = errorMessage != null && fatherOccupation.isBlank(),
-                            supportingText = errorMessage?.takeIf { fatherOccupation.isBlank() }?.let {
-                                { Text("Required", color = ErrorColor, fontFamily = FontFamily.SansSerif) }
-                            },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Text,
@@ -808,7 +794,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    text = "Mother's Occupation",
+                                    "Mother's Occupation (Optional)",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -818,10 +804,6 @@ fun AddStudentScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { contentDescription = "Mother's Occupation input field" },
-                            isError = errorMessage != null && motherOccupation.isBlank(),
-                            supportingText = errorMessage?.takeIf { motherOccupation.isBlank() }?.let {
-                                { Text("Required", color = ErrorColor, fontFamily = FontFamily.SansSerif) }
-                            },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Text,
@@ -851,7 +833,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Address",
+                                    "Address (Optional)",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -861,10 +843,6 @@ fun AddStudentScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { contentDescription = "Address input field" },
-                            isError = errorMessage != null && address.isBlank(),
-                            supportingText = errorMessage?.takeIf { address.isBlank() }?.let {
-                                { Text("Required", color = ErrorColor, fontFamily = FontFamily.SansSerif) }
-                            },
                             singleLine = false,
                             maxLines = 3,
                             keyboardOptions = KeyboardOptions(
@@ -917,6 +895,10 @@ fun AddStudentScreen(
                                     .clickable { classExpanded = true }
                                     .semantics { contentDescription = "Class selection field" },
                                 readOnly = true,
+                                isError = errorMessage != null && selectedClass.isBlank(),
+                                supportingText = errorMessage?.takeIf { selectedClass.isBlank() }?.let {
+                                    { Text("Required", color = ErrorColor, fontFamily = FontFamily.SansSerif) }
+                                },
                                 trailingIcon = {
                                     IconButton(onClick = { classExpanded = !classExpanded }) {
                                         Icon(
@@ -1072,7 +1054,7 @@ fun AddStudentScreen(
                                 onValueChange = {},
                                 label = {
                                     Text(
-                                        "Category/Caste",
+                                        "Category/Caste (Optional)",
                                         style = MaterialTheme.typography.bodyLarge.copy(
                                             color = TextColor.copy(alpha = 0.8f),
                                             fontFamily = FontFamily.SansSerif
@@ -1150,7 +1132,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Religion",
+                                    "Religion (Optional)",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -1160,10 +1142,6 @@ fun AddStudentScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { contentDescription = "Religion input field" },
-                            isError = errorMessage != null && religion.isBlank(),
-                            supportingText = errorMessage?.takeIf { religion.isBlank() }?.let {
-                                { Text("Required", color = ErrorColor, fontFamily = FontFamily.SansSerif) }
-                            },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Text,
@@ -1193,7 +1171,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Mother Tongue",
+                                    "Mother Tongue (Optional)",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -1203,10 +1181,6 @@ fun AddStudentScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { contentDescription = "Mother Tongue input field" },
-                            isError = errorMessage != null && motherTongue.isBlank(),
-                            supportingText = errorMessage?.takeIf { motherTongue.isBlank() }?.let {
-                                { Text("Required", color = ErrorColor, fontFamily = FontFamily.SansSerif) }
-                            },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(
                                 keyboardType = KeyboardType.Text,
@@ -1272,7 +1246,7 @@ fun AddStudentScreen(
                                 onValueChange = {},
                                 label = {
                                     Text(
-                                        "Transportation",
+                                        "Transportation (Optional)",
                                         style = MaterialTheme.typography.bodyLarge.copy(
                                             color = TextColor.copy(alpha = 0.8f),
                                             fontFamily = FontFamily.SansSerif
@@ -1350,33 +1324,61 @@ fun AddStudentScreen(
                                 onClick = {
                                     if (isFormValid) {
                                         try {
-                                            val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                                            val parsedDate = dateFormat.parse(dateOfBirth)
-                                            val currentDate = Date()
-                                            val minDate = Calendar.getInstance().apply {
-                                                add(Calendar.YEAR, -100)
-                                            }.time
+                                            // Validate date of birth if provided
+                                            if (dateOfBirth.isNotEmpty()) {
+                                                val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                                                val parsedDate = dateFormat.parse(dateOfBirth)
+                                                val currentDate = Date()
+                                                val minDate = Calendar.getInstance().apply {
+                                                    add(Calendar.YEAR, -100)
+                                                }.time
 
-                                            if (parsedDate != null) {
-                                                if (parsedDate.after(currentDate)) {
-                                                    errorMessage = "Date of birth cannot be in the future"
-                                                } else if (parsedDate.before(minDate)) {
-                                                    errorMessage = "Date of birth is too far in the past"
-                                                } else {
-                                                    isLoadingSave = true
-                                                    kotlinx.coroutines.MainScope().launch {
-                                                        delay(1000) // Simulate backend save
-                                                        viewModel.addStudent(
-                                                            Student(
-                                                                id = 0, // Assuming ID is auto-generated
-                                                                name = studentName,
-                                                                classname = selectedClass
-                                                            )
-                                                        )
-                                                        onSaveSuccess()
-                                                        isLoadingSave = false
+                                                if (parsedDate != null) {
+                                                    if (parsedDate.after(currentDate)) {
+                                                        errorMessage = "Date of birth cannot be in the future"
+                                                        return@Button
                                                     }
+                                                    if (parsedDate.before(minDate)) {
+                                                        errorMessage = "Date of birth is too far in the past"
+                                                        return@Button
+                                                    }
+                                                } else {
+                                                    errorMessage = "Invalid date format (use dd/MM/yyyy)"
+                                                    return@Button
                                                 }
+                                            }
+
+                                            isLoadingSave = true
+                                            kotlinx.coroutines.MainScope().launch {
+                                                delay(1000) // Simulate backend save
+                                                viewModel.addStudent(
+                                                    Student(
+                                                        id = 0, // Will be overridden by rollno
+                                                        name = studentName.takeIf { it.isNotBlank() }.toString(),
+                                                        classname = selectedClass.takeIf { it.isNotBlank() }.toString(),
+                                                        dateOfBirth = dateOfBirth.takeIf { it.isNotBlank() },
+                                                        gender = selectedGender.takeIf { it.isNotBlank() },
+                                                        nationality = nationality.takeIf { it.isNotBlank() },
+                                                        aadhaarNumber = aadhaarNumber.takeIf { it.isNotBlank() },
+                                                        fatherName = fatherName.takeIf { it.isNotBlank() },
+                                                        motherName = motherName.takeIf { it.isNotBlank() },
+                                                        guardianName = guardianName.takeIf { it.isNotBlank() },
+                                                        contactNumber = contactNumber.takeIf { it.isNotBlank() },
+                                                        emailAddress = emailAddress.takeIf { it.isNotBlank() },
+                                                        fatherOccupation = fatherOccupation.takeIf { it.isNotBlank() },
+                                                        motherOccupation = motherOccupation.takeIf { it.isNotBlank() },
+                                                        address = address.takeIf { it.isNotBlank() },
+                                                        previousSchoolName = previousSchoolName.takeIf { it.isNotBlank() },
+                                                        previousSchoolAddress = previousSchoolAddress.takeIf { it.isNotBlank() },
+                                                        category = selectedCategory.takeIf { it.isNotBlank() },
+                                                        religion = religion.takeIf { it.isNotBlank() },
+                                                        motherTongue = motherTongue.takeIf { it.isNotBlank() },
+                                                        siblingsInSchool = siblingsInSchool.takeIf { it.isNotBlank() },
+                                                        transport = selectedTransport.takeIf { it.isNotBlank() }
+                                                    )
+                                                )
+                                                onSaveSuccess()
+                                                isLoadingSave = false
                                             }
                                         } catch (e: Exception) {
                                             errorMessage = "Invalid date format (use dd/MM/yyyy)"
@@ -1384,25 +1386,12 @@ fun AddStudentScreen(
                                         }
                                     } else {
                                         errorMessage = when {
-                                            !contactNumber.matches(Regex("^[0-9]{10}$")) -> "Contact number must be 10 digits"
-                                            aadhaarNumber.isNotEmpty() && !aadhaarNumber.matches(Regex("^[0-9]{12}$")) -> "Aadhaar number must be 12 digits"
-                                            !emailAddress.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) -> "Invalid email address"
                                             studentName.isBlank() -> "Student name is required"
-                                            dateOfBirth.isBlank() -> "Date of birth is required"
-                                            nationality.isBlank() -> "Nationality is required"
-                                            fatherName.isBlank() -> "Father's name is required"
-                                            motherName.isBlank() -> "Mother's name is required"
-                                            contactNumber.isBlank() -> "Contact number is required"
-                                            emailAddress.isBlank() -> "Email address is required"
-                                            fatherOccupation.isBlank() -> "Father's occupation is required"
-                                            motherOccupation.isBlank() -> "Mother's occupation is required"
-                                            address.isBlank() -> "Address is required"
                                             selectedClass.isBlank() -> "Class is required"
-                                            selectedCategory.isBlank() -> "Category is required"
-                                            religion.isBlank() -> "Religion is required"
-                                            motherTongue.isBlank() -> "Mother tongue is required"
-                                            selectedTransport.isBlank() -> "Transportation is required"
-                                            else -> "Please fill all required fields"
+                                            contactNumber.isNotEmpty() && !contactNumber.matches(Regex("^[0-9]{10}$")) -> "Contact number must be 10 digits"
+                                            aadhaarNumber.isNotEmpty() && !aadhaarNumber.matches(Regex("^[0-9]{12}$")) -> "Aadhaar number must be 12 digits"
+                                            emailAddress.isNotEmpty() && !emailAddress.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) -> "Invalid email address"
+                                            else -> "Please check your input"
                                         }
                                     }
                                 },
@@ -1419,7 +1408,7 @@ fun AddStudentScreen(
                                     disabledContentColor = Color.White.copy(alpha = 0.5f)
                                 ),
                                 elevation = ButtonDefaults.buttonElevation(
-                                    defaultElevation =4.dp,
+                                    defaultElevation = 4.dp,
                                     pressedElevation = 8.dp,
                                     disabledElevation = 0.dp
                                 )
@@ -1479,6 +1468,18 @@ fun AddStudentScreen(
                             }
                         }
 
+                        errorMessage?.let {
+                            Text(
+                                text = it,
+                                color = ErrorColor,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
                         Text(
                             text = "Need help?",
                             style = MaterialTheme.typography.bodyMedium.copy(
@@ -1498,6 +1499,7 @@ fun AddStudentScreen(
     }
 }
 
+// DatePickeField remains unchanged
 @Composable
 fun DatePickeField(
     modifier: Modifier = Modifier,
@@ -1514,7 +1516,7 @@ fun DatePickeField(
         onValueChange = {},
         label = {
             Text(
-                "Date of Birth",
+                "Date of Birth (Optional)",
                 style = MaterialTheme.typography.bodyLarge.copy(
                     color = TextColor.copy(alpha = 0.8f),
                     fontFamily = FontFamily.SansSerif
@@ -1546,7 +1548,6 @@ fun DatePickeField(
             .semantics { contentDescription = "Date of Birth input field" },
         readOnly = true,
         isError = isError,
-        supportingText = isError.let { { Text("Required", color = ErrorColor, fontFamily = FontFamily.SansSerif) } },
         trailingIcon = {
             IconButton(onClick = {
                 val datePickerDialog = DatePickerDialog(

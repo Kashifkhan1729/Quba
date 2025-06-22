@@ -60,11 +60,11 @@ fun MarkScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit = {}
 ) {
-    val classes = listOf("Nursery", "KG", "1st", "2nd", "3rd", "4th", "5th")
+    val classes = listOf("Nur", "KG", "1st", "2nd", "3rd", "4th", "5th")
     var studentName by remember { mutableStateOf("") }
     var fatherName by remember { mutableStateOf("") }
     var rollNo by remember { mutableStateOf("") }
-    var selectedClass by remember { mutableStateOf(if (loc == 1) sub else "Nursery") }
+    var selectedClass by remember { mutableStateOf(if (loc == 1) sub else "Nur") }
     var date by remember { mutableStateOf("") }
     val subjects = getSubjectsForClass(selectedClass)
     val subjectMarks = remember { mutableStateMapOf<String, Pair<Int, Int>>() }
@@ -706,9 +706,7 @@ fun SubjectMarksInput(
                 hyError = null
                 if (halfYearly.length == 2) {
                     // Only request focus if nextFocusRequester is valid
-                    if (nextFocusRequester != null) {
-                        nextFocusRequester.requestFocus()
-                    }
+                    nextFocusRequester?.requestFocus()
                     onHyFilled()
                 }
             }

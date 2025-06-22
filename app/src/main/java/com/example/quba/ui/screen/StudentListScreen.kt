@@ -34,6 +34,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.quba.*
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.delay
 
 // Colors from AdminScreen
@@ -44,7 +46,7 @@ private val TextColor = Color(0xFF212529)
 
 private val DisabledColor = Color(0xFFADB5BD)
 
-data class Student(val id: Int, val name: String, val classname: String)
+
 
 @Composable
 fun StudentListScreen(
@@ -64,9 +66,11 @@ fun StudentListScreen(
     var isLoadingList by remember { mutableStateOf(true) }
     var studentToDelete by remember { mutableStateOf<Student?>(null) }
     val classList = listOf("Nur", "KG", "1st", "2nd", "3rd", "4th", "5th")
+    val stud = students.joinToString()
 
     // Fetch students when the screen is first displayed
-    LaunchedEffect(Unit) {
+    LaunchedEffect(selectedClass) {
+        isLoadingList = true
         viewModel.fetchStudents()
         isLoadingList = false
     }
@@ -79,6 +83,13 @@ fun StudentListScreen(
             selectedClass = sub // Ensure selectedClass is always sub when loc is 1
         }
     }
+    val database = Firebase.database
+    val myRef = database.getReference("message")
+
+    myRef.setValue(stud)
+    println("Selected Class: $selectedClass")
+    println("Students: $students")
+    println("Filtered Students: ${students.filter { it.classname == selectedClass }}")
 
     // Delete confirmation dialog
     studentToDelete?.let { student ->
@@ -250,9 +261,9 @@ fun StudentListScreen(
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Box(modifier = Modifier.weight(1f)) {
+                        Box(modifier = Modifier.weight(1.5f)) {
                             OutlinedTextField(
                                 value = selectedClass,
                                 onValueChange = {},
