@@ -66,7 +66,7 @@ fun StudentListScreen(
     var isLoadingList by remember { mutableStateOf(true) }
     var studentToDelete by remember { mutableStateOf<Student?>(null) }
     val classList = listOf("Nur", "KG", "1st", "2nd", "3rd", "4th", "5th")
-    val stud = students.joinToString()
+
 
     // Fetch students when the screen is first displayed
     LaunchedEffect(selectedClass) {
@@ -74,22 +74,15 @@ fun StudentListScreen(
         viewModel.fetchStudents()
         isLoadingList = false
     }
+    val stud=students.joinToString()
 
     // Filter students based on selected class
-    val filteredStudents = if (loc == 0) {
-        students.filter { it.classname == selectedClass }
-    } else {
-        students.filter { it.classname == sub }.also {
-            selectedClass = sub // Ensure selectedClass is always sub when loc is 1
-        }
-    }
-    val database = Firebase.database
-    val myRef = database.getReference("message")
+    val filteredStudents = students
+    val database1 = Firebase.database
+    val myRef1 = database1.getReference("message list")
+    myRef1.setValue(stud)
 
-    myRef.setValue(stud)
-    println("Selected Class: $selectedClass")
-    println("Students: $students")
-    println("Filtered Students: ${students.filter { it.classname == selectedClass }}")
+
 
     // Delete confirmation dialog
     studentToDelete?.let { student ->
@@ -423,7 +416,7 @@ fun StudentListScreen(
                                 .height(300.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            items(filteredStudents, key = { it.id }) { student ->
+                            items(filteredStudents, key = { it.rollno }) { student ->
                                 Card(
                                     modifier = Modifier
                                         .fillMaxWidth()

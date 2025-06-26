@@ -38,7 +38,6 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import com.example.quba.utils.StudentViewModel
-import com.example.quba.ui.screen.Student
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -163,7 +162,6 @@ fun AddStudentScreen(
                                     fatherOccupation = ""
                                     motherOccupation = ""
                                     address = ""
-                                    selectedClass = "Nur"
                                     previousSchoolName = ""
                                     previousSchoolAddress = ""
                                     selectedCategory = "General"
@@ -496,7 +494,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Aadhaar Number (Optional)",
+                                    "Aadhaar Number",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -552,7 +550,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Father's Name (Optional)",
+                                    "Father's Name",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -591,7 +589,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Mother's Name (Optional)",
+                                    "Mother's Name",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -630,7 +628,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Guardian's Name (Optional)",
+                                    "Guardian's Name",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -669,7 +667,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Contact Number (Optional)",
+                                    "Contact Number",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -712,7 +710,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Email Address (Optional)",
+                                    "Email Address",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -755,7 +753,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Father's Occupation (Optional)",
+                                    "Father's Occupation",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -794,7 +792,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Mother's Occupation (Optional)",
+                                    "Mother's Occupation",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -833,7 +831,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Address (Optional)",
+                                    "Address",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -965,7 +963,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Previous School Name (Optional)",
+                                    "Previous School Name",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -1004,7 +1002,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Previous School Address (Optional)",
+                                    "Previous School Address",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -1054,7 +1052,7 @@ fun AddStudentScreen(
                                 onValueChange = {},
                                 label = {
                                     Text(
-                                        "Category/Caste (Optional)",
+                                        "Category/Caste",
                                         style = MaterialTheme.typography.bodyLarge.copy(
                                             color = TextColor.copy(alpha = 0.8f),
                                             fontFamily = FontFamily.SansSerif
@@ -1132,7 +1130,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Religion (Optional)",
+                                    "Religion",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -1171,7 +1169,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Mother Tongue (Optional)",
+                                    "Mother Tongue",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -1210,7 +1208,7 @@ fun AddStudentScreen(
                             },
                             label = {
                                 Text(
-                                    "Siblings in School (Optional)",
+                                    "Siblings in School",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif
@@ -1246,7 +1244,7 @@ fun AddStudentScreen(
                                 onValueChange = {},
                                 label = {
                                     Text(
-                                        "Transportation (Optional)",
+                                        "Transportation",
                                         style = MaterialTheme.typography.bodyLarge.copy(
                                             color = TextColor.copy(alpha = 0.8f),
                                             fontFamily = FontFamily.SansSerif
@@ -1353,7 +1351,7 @@ fun AddStudentScreen(
                                                 delay(1000) // Simulate backend save
                                                 viewModel.addStudent(
                                                     Student(
-                                                        id = 0, // Will be overridden by rollno
+                                                        rollno = 0, // Will be overridden by rollno
                                                         name = studentName.takeIf { it.isNotBlank() }.toString(),
                                                         classname = selectedClass.takeIf { it.isNotBlank() }.toString(),
                                                         dateOfBirth = dateOfBirth.takeIf { it.isNotBlank() },
@@ -1516,7 +1514,7 @@ fun DatePickeField(
         onValueChange = {},
         label = {
             Text(
-                "Date of Birth (Optional)",
+                "Date of Birth",
                 style = MaterialTheme.typography.bodyLarge.copy(
                     color = TextColor.copy(alpha = 0.8f),
                     fontFamily = FontFamily.SansSerif

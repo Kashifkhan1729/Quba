@@ -1,6 +1,6 @@
 package com.example.quba.ui.screen
 data class Student(
-    val id: Int = 0,
+    val rollno: Int = 0,
     val name: String? = null,
     val classname: String? = null,
     val dateOfBirth: String? = null,

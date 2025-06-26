@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.tasks.Kapt
+
 
 plugins {
     alias(libs.plugins.android.application)
@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.quba"
-        minSdk = 34
+        minSdk = 28
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -76,6 +76,6 @@ dependencies {
     implementation (libs.google.firebase.auth)
     implementation (libs.firebase.firestore)
     implementation(libs.firebase.firestore.ktx)
-    implementation ("androidx.compose.runtime:runtime-livedata:1.8.2")
+    implementation (libs.androidx.runtime.livedata)
 
 }

@@ -27,6 +27,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import java.text.SimpleDateFormat
 import java.util.*
 import android.app.DatePickerDialog
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -215,6 +218,10 @@ fun StudentScreen(
                             unfocusedTextColor = TextColor
                         ),
                         singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Next
+                        ),
                         isError = errorMessage != null,
                         supportingText = errorMessage?.let { { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) } }
                     )

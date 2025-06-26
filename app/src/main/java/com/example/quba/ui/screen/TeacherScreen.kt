@@ -45,7 +45,7 @@ fun TeacherScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
     onLoginSuccess: (String) -> Unit,
-    availableClasses: List<String> = listOf("Nursery", "KG", "Ist", "2nd", "3rd", "4th", "5th")
+    availableClasses: List<String> = listOf("Nur", "KG", "Ist", "2nd", "3rd", "4th", "5th")
 ) {
     var className by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
@@ -160,7 +160,7 @@ fun TeacherScreen(
                             onValueChange = {},
                             label = {
                                 Text(
-                                    "Class Name",
+                                    "Class",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = TextColor.copy(alpha = 0.8f),
                                         fontFamily = FontFamily.SansSerif

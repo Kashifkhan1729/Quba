@@ -25,7 +25,7 @@ class StudentViewModel : ViewModel() {
                 } else {
                     val studentList = snapshot.documents.map { doc ->
                         Student(
-                            id = doc.getLong("rollno")?.toInt() ?: 0,
+                            rollno = doc.getLong("rollno")?.toInt() ?: 0,
                             name = doc.getString("name"),
                             classname = doc.getString("className"),
                             dateOfBirth = doc.getString("dateOfBirth"),
@@ -63,12 +63,12 @@ class StudentViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val querySnapshot = db.collection("students")
-                    .whereEqualTo("rollno", student.id.toLong())
+                    .whereEqualTo("rollno", student.rollno.toLong())
                     .get()
                     .await()
                 for (document in querySnapshot.documents) {
                     db.collection("students").document(document.id).delete().await()
-                    println("Deleted student with rollno: ${student.id}")
+                    println("Deleted student with rollno: ${student.rollno}")
                 }
                 fetchStudents()
             } catch (e: Exception) {
@@ -130,7 +130,7 @@ class StudentViewModel : ViewModel() {
                 ).filterValues { it != null } // Remove null values to avoid Firestore issues
 
                 // Save to Firestore
-                db.collection("students").add(studentData).await()
+                db.collection("students").document(rollno.toString()).set(studentData).await()
                 println("Added student with rollno: $rollno")
                 fetchStudents() // Refresh the list
             } catch (e: Exception) {

@@ -1,18 +1,17 @@
 package com.example.quba.ui.screen
 
+import android.app.DatePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-//import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
-//import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,12 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
@@ -34,26 +30,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import android.app.DatePickerDialog
-import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.example.quba.loc
+import com.example.quba.sub
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import com.example.quba.loc
-import com.example.quba.sub
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
-// Colors from AdminScreen
+// Colors
 private val SecondaryColor = Color(0xFF3F37C9)
 private val BackgroundColor = Color(0xFFF8F9FA)
 private val CardColor = Color.White
 private val TextColor = Color(0xFF212529)
-
 private val DisabledColor = Color(0xFFADB5BD)
+
+// Default values for loc and sub
 
 @Composable
 fun MarkScreen(
@@ -66,7 +61,7 @@ fun MarkScreen(
     var rollNo by remember { mutableStateOf("") }
     var selectedClass by remember { mutableStateOf(if (loc == 1) sub else "Nur") }
     var date by remember { mutableStateOf("") }
-    val subjects = getSubjectsForClass(selectedClass)
+    val subjects = remember(selectedClass) { getSubjectsForClass(selectedClass) }
     val subjectMarks = remember { mutableStateMapOf<String, Pair<Int, Int>>() }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoadingGenerate by remember { mutableStateOf(false) }
@@ -74,8 +69,6 @@ fun MarkScreen(
     val isFormValid = studentName.isNotBlank() && fatherName.isNotBlank() &&
             rollNo.isNotBlank() && date.isNotBlank() &&
             subjects.all { subjectMarks[it]?.let { (hy, an) -> hy in 0..50 && an in 0..50 } == true }
-    val focusRequesters = remember { subjects.map { FocusRequester() } }
-    val focusManager = LocalFocusManager.current
 
     Box(
         modifier = modifier
@@ -109,7 +102,6 @@ fun MarkScreen(
                     spotColor = PrimaryColor.copy(alpha = 0.2f)
                 ),
             colors = CardDefaults.cardColors(containerColor = CardColor),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             shape = RoundedCornerShape(24.dp)
         ) {
             LazyColumn(
@@ -194,21 +186,13 @@ fun MarkScreen(
                                     errorMessage = null
                                 }
                             },
-                            label = {
-                                Text(
-                                    "Student Name",
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        color = TextColor.copy(alpha = 0.8f),
-                                        fontFamily = FontFamily.SansSerif
-                                    )
-                                )
-                            },
+                            label = { Text("Student Name") },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { contentDescription = "Student Name input field" },
                             isError = errorMessage != null,
                             supportingText = errorMessage?.let {
-                                { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) }
+                                { Text(it, color = ErrorColor) }
                             },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(
@@ -217,16 +201,11 @@ fun MarkScreen(
                             ),
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                disabledContainerColor = Color.Transparent,
                                 focusedBorderColor = PrimaryColor,
                                 unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
                                 cursorColor = PrimaryColor,
                                 focusedLabelColor = PrimaryColor,
-                                unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
-                                focusedTextColor = TextColor,
-                                unfocusedTextColor = TextColor
+                                unfocusedLabelColor = TextColor.copy(alpha = 0.8f)
                             )
                         )
 
@@ -238,21 +217,13 @@ fun MarkScreen(
                                     errorMessage = null
                                 }
                             },
-                            label = {
-                                Text(
-                                    "Father's Name",
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        color = TextColor.copy(alpha = 0.8f),
-                                        fontFamily = FontFamily.SansSerif
-                                    )
-                                )
-                            },
+                            label = { Text("Father's Name") },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { contentDescription = "Father's Name input field" },
                             isError = errorMessage != null,
                             supportingText = errorMessage?.let {
-                                { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) }
+                                { Text(it, color = ErrorColor) }
                             },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(
@@ -261,16 +232,11 @@ fun MarkScreen(
                             ),
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                disabledContainerColor = Color.Transparent,
                                 focusedBorderColor = PrimaryColor,
                                 unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
                                 cursorColor = PrimaryColor,
                                 focusedLabelColor = PrimaryColor,
-                                unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
-                                focusedTextColor = TextColor,
-                                unfocusedTextColor = TextColor
+                                unfocusedLabelColor = TextColor.copy(alpha = 0.8f)
                             )
                         )
 
@@ -279,15 +245,7 @@ fun MarkScreen(
                             OutlinedTextField(
                                 value = selectedClass,
                                 onValueChange = {},
-                                label = {
-                                    Text(
-                                        "Class",
-                                        style = MaterialTheme.typography.bodyLarge.copy(
-                                            color = TextColor.copy(alpha = 0.8f),
-                                            fontFamily = FontFamily.SansSerif
-                                        )
-                                    )
-                                },
+                                label = { Text("Class") },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable(enabled = loc == 0) { expanded = true }
@@ -307,19 +265,12 @@ fun MarkScreen(
                                 },
                                 shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedContainerColor = Color.Transparent,
-                                    unfocusedContainerColor = Color.Transparent,
-                                    disabledContainerColor = Color.Transparent,
                                     focusedBorderColor = PrimaryColor,
                                     unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
                                     disabledBorderColor = TextColor.copy(alpha = 0.2f),
-                                    cursorColor = PrimaryColor,
                                     focusedLabelColor = PrimaryColor,
                                     unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
-                                    disabledLabelColor = TextColor.copy(alpha = 0.8f),
-                                    focusedTextColor = TextColor,
-                                    unfocusedTextColor = TextColor,
-                                    disabledTextColor = TextColor
+                                    disabledLabelColor = TextColor.copy(alpha = 0.8f)
                                 )
                             )
 
@@ -332,15 +283,7 @@ fun MarkScreen(
                             ) {
                                 classes.forEach { className ->
                                     DropdownMenuItem(
-                                        text = {
-                                            Text(
-                                                className,
-                                                style = MaterialTheme.typography.bodyLarge.copy(
-                                                    color = TextColor,
-                                                    fontFamily = FontFamily.SansSerif
-                                                )
-                                            )
-                                        },
+                                        text = { Text(className) },
                                         onClick = {
                                             selectedClass = className
                                             expanded = false
@@ -366,21 +309,13 @@ fun MarkScreen(
                                     errorMessage = null
                                 }
                             },
-                            label = {
-                                Text(
-                                    "Roll No",
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        color = TextColor.copy(alpha = 0.8f),
-                                        fontFamily = FontFamily.SansSerif
-                                    )
-                                )
-                            },
+                            label = { Text("Roll No") },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics { contentDescription = "Roll Number input field" },
                             isError = errorMessage != null,
                             supportingText = errorMessage?.let {
-                                { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) }
+                                { Text(it, color = ErrorColor) }
                             },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(
@@ -389,16 +324,11 @@ fun MarkScreen(
                             ),
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                disabledContainerColor = Color.Transparent,
                                 focusedBorderColor = PrimaryColor,
                                 unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
                                 cursorColor = PrimaryColor,
                                 focusedLabelColor = PrimaryColor,
-                                unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
-                                focusedTextColor = TextColor,
-                                unfocusedTextColor = TextColor
+                                unfocusedLabelColor = TextColor.copy(alpha = 0.8f)
                             )
                         )
 
@@ -419,8 +349,7 @@ fun MarkScreen(
                         text = "Subject Marks",
                         style = MaterialTheme.typography.bodyLarge.copy(
                             fontWeight = FontWeight.Bold,
-                            color = TextColor,
-                            fontFamily = FontFamily.SansSerif
+                            color = TextColor
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -441,21 +370,7 @@ fun MarkScreen(
                             subjectMarks[subjects[index]] = Pair(halfYearly, annual)
                             errorMessage = null
                         },
-                        isError = errorMessage != null,
-                        focusRequester = focusRequesters[index],
-                        nextFocusRequester = focusRequesters.getOrNull(index + 1),
-                        onHyFilled = {
-                            if (index < subjects.size) {
-                                focusRequesters[index].requestFocus()
-                            }
-                        },
-                        onAnnualFilled = {
-                            if (index < subjects.size - 1) {
-                                focusRequesters[index + 1].requestFocus()
-                            } else {
-                                focusManager.clearFocus()
-                            }
-                        }
+                        isError = errorMessage != null
                     )
                 }
 
@@ -469,8 +384,8 @@ fun MarkScreen(
                         Button(
                             onClick = {
                                 isLoadingGenerate = true
-                                kotlinx.coroutines.MainScope().launch {
-                                    delay(10) // Simulate PDF generation
+                                MainScope().launch {
+                                    delay(1000) // Simulate PDF generation
                                     errorMessage = if (isFormValid) {
                                         "PDF generation not implemented"
                                     } else {
@@ -490,11 +405,6 @@ fun MarkScreen(
                                 contentColor = Color.White,
                                 disabledContainerColor = DisabledColor,
                                 disabledContentColor = Color.White.copy(alpha = 0.5f)
-                            ),
-                            elevation = ButtonDefaults.buttonElevation(
-                                defaultElevation = 4.dp,
-                                pressedElevation = 8.dp,
-                                disabledElevation = 0.dp
                             )
                         ) {
                             if (isLoadingGenerate) {
@@ -503,26 +413,19 @@ fun MarkScreen(
                                     color = Color.White
                                 )
                             } else {
-                                Text(
-                                    text = "GENERATE",
-                                    style = MaterialTheme.typography.labelLarge.copy(
-                                        fontWeight = FontWeight.Medium,
-                                        letterSpacing = 1.sp,
-                                        fontFamily = FontFamily.SansSerif
-                                    )
-                                )
+                                Text("GENERATE")
                             }
                         }
 
                         Button(
                             onClick = {
                                 isLoadingClear = true
-                                kotlinx.coroutines.MainScope().launch {
-                                    delay(10) // Simulate clearing
+                                MainScope().launch {
+                                    delay(1000) // Simulate clearing
                                     studentName = ""
                                     fatherName = ""
                                     rollNo = ""
-//                                    date = ""
+                                    date = ""
                                     subjectMarks.clear()
                                     errorMessage = null
                                     isLoadingClear = false
@@ -539,11 +442,6 @@ fun MarkScreen(
                                 contentColor = Color.White,
                                 disabledContainerColor = DisabledColor,
                                 disabledContentColor = Color.White.copy(alpha = 0.5f)
-                            ),
-                            elevation = ButtonDefaults.buttonElevation(
-                                defaultElevation = 4.dp,
-                                pressedElevation = 8.dp,
-                                disabledElevation = 0.dp
                             )
                         ) {
                             if (isLoadingClear) {
@@ -552,14 +450,7 @@ fun MarkScreen(
                                     color = Color.White
                                 )
                             } else {
-                                Text(
-                                    text = "CLEAR",
-                                    style = MaterialTheme.typography.labelLarge.copy(
-                                        fontWeight = FontWeight.Medium,
-                                        letterSpacing = 1.sp,
-                                        fontFamily = FontFamily.SansSerif
-                                    )
-                                )
+                                Text("CLEAR")
                             }
                         }
                     }
@@ -568,8 +459,7 @@ fun MarkScreen(
                         text = "Need help?",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = PrimaryColor,
-                            fontWeight = FontWeight.Medium,
-                            fontFamily = FontFamily.SansSerif
+                            fontWeight = FontWeight.Medium
                         ),
                         modifier = Modifier
                             .clickable { /* Handle help request */ }
@@ -596,19 +486,11 @@ fun DatePickerField(
     OutlinedTextField(
         value = date,
         onValueChange = {},
-        label = {
-            Text(
-                "Date",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = TextColor.copy(alpha = 0.8f),
-                    fontFamily = FontFamily.SansSerif
-                )
-            )
-        },
+        label = { Text("Date") },
         modifier = modifier
             .fillMaxWidth()
             .clickable {
-                val datePickerDialog = DatePickerDialog(
+                DatePickerDialog(
                     context,
                     { _, year, month, dayOfMonth ->
                         val selectedDate = Calendar.getInstance().apply {
@@ -621,16 +503,15 @@ fun DatePickerField(
                     calendar.get(Calendar.DAY_OF_MONTH)
                 ).apply {
                     datePicker.maxDate = System.currentTimeMillis()
-                }
-                datePickerDialog.show()
+                }.show()
             }
             .semantics { contentDescription = "Date input field" },
         readOnly = true,
         isError = isError,
-        supportingText = isError.let { { Text("Please select a date", color = ErrorColor, fontFamily = FontFamily.SansSerif) } },
+        supportingText = if (isError) { { Text("Please select a date", color = ErrorColor) } } else null,
         trailingIcon = {
             IconButton(onClick = {
-                val datePickerDialog = DatePickerDialog(
+                DatePickerDialog(
                     context,
                     { _, year, month, dayOfMonth ->
                         val selectedDate = Calendar.getInstance().apply {
@@ -643,8 +524,7 @@ fun DatePickerField(
                     calendar.get(Calendar.DAY_OF_MONTH)
                 ).apply {
                     datePicker.maxDate = System.currentTimeMillis()
-                }
-                datePickerDialog.show()
+                }.show()
             }) {
                 Icon(
                     imageVector = Icons.Default.DateRange,
@@ -653,19 +533,13 @@ fun DatePickerField(
                 )
             }
         },
-        singleLine = true,
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-            disabledContainerColor = Color.Transparent,
             focusedBorderColor = PrimaryColor,
             unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
             cursorColor = PrimaryColor,
             focusedLabelColor = PrimaryColor,
-            unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
-            focusedTextColor = TextColor,
-            unfocusedTextColor = TextColor
+            unfocusedLabelColor = TextColor.copy(alpha = 0.8f)
         )
     )
 }
@@ -678,54 +552,32 @@ fun SubjectMarksInput(
     totalSubjects: Int,
     subjectMarks: SnapshotStateMap<String, Pair<Int, Int>>,
     onMarksChanged: (Int, Int) -> Unit,
-    isError: Boolean,
-    focusRequester: FocusRequester,
-    nextFocusRequester: FocusRequester?,
-    onHyFilled: () -> Unit,
-    onAnnualFilled: () -> Unit
+    isError: Boolean
 ) {
     var halfYearly by remember { mutableStateOf(subjectMarks[subject]?.first?.toString() ?: "") }
     var annual by remember { mutableStateOf(subjectMarks[subject]?.second?.toString() ?: "") }
     var hyError by remember { mutableStateOf<String?>(null) }
     var annualError by remember { mutableStateOf<String?>(null) }
-    val focusManager = LocalFocusManager.current
 
-    // Update subjectMarks when the composable is initialized
     LaunchedEffect(subject) {
         if (!subjectMarks.containsKey(subject)) {
-            subjectMarks[subject] = Pair(0, 0) // Initialize with default values
+            subjectMarks[subject] = Pair(0, 0)
         }
     }
 
     LaunchedEffect(halfYearly) {
         if (halfYearly.isNotEmpty()) {
             val value = halfYearly.toIntOrNull() ?: 0
-            if (value > 50) {
-                hyError = "Max 50"
-            } else {
-                hyError = null
-                if (halfYearly.length == 2) {
-                    // Only request focus if nextFocusRequester is valid
-                    nextFocusRequester?.requestFocus()
-                    onHyFilled()
-                }
-            }
-            onMarksChanged(halfYearly.toIntOrNull() ?: 0, annual.toIntOrNull() ?: 0)
+            hyError = if (value > 50) "Max 50" else null
+            onMarksChanged(value, annual.toIntOrNull() ?: 0)
         }
     }
 
     LaunchedEffect(annual) {
         if (annual.isNotEmpty()) {
             val value = annual.toIntOrNull() ?: 0
-            if (value > 50) {
-                annualError = "Max 50"
-            } else {
-                annualError = null
-                if (annual.length == 2) {
-                    onAnnualFilled()
-                }
-            }
-            onMarksChanged(halfYearly.toIntOrNull() ?: 0, annual.toIntOrNull() ?: 0)
+            annualError = if (value > 50) "Max 50" else null
+            onMarksChanged(halfYearly.toIntOrNull() ?: 0, value)
         }
     }
 
@@ -737,140 +589,89 @@ fun SubjectMarksInput(
         ) {
             Text(
                 text = subject,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.Normal,
-                    color = TextColor,
-                    fontFamily = FontFamily.SansSerif
-                ),
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(end = 5.dp)
+                    .padding(end = 8.dp)
                     .semantics { contentDescription = "$subject label" },
                 textAlign = TextAlign.Start
             )
 
-            Column(modifier = Modifier.weight(1f)) {
-                OutlinedTextField(
-                    value = halfYearly,
-                    onValueChange = { input ->
-                        if (input.length <= 2 && (input.isEmpty() || input.toIntOrNull() != null)) {
-                            halfYearly = input
-                        }
-                    },
-                    label = {
-                        Text(
-                            "HY",
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                color = TextColor.copy(alpha = 0.8f),
-                                fontFamily = FontFamily.SansSerif
-                            )
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp)
-                        .focusRequester(focusRequester)
-                        .semantics { contentDescription = "$subject Half Yearly marks input" },
-                    isError = isError || hyError != null,
-                    supportingText = hyError?.let {
-                        { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) }
-                    },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = if (annual.isEmpty()) ImeAction.Next else ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = { nextFocusRequester?.requestFocus() },
-                        onDone = { focusManager.clearFocus() }
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                        focusedBorderColor = PrimaryColor,
-                        unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
-                        cursorColor = PrimaryColor,
-                        focusedLabelColor = PrimaryColor,
-                        unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
-                        focusedTextColor = TextColor,
-                        unfocusedTextColor = TextColor
-                    )
+            OutlinedTextField(
+                value = halfYearly,
+                onValueChange = { input ->
+                    if (input.length <= 2 && (input.isEmpty() || input.toIntOrNull() != null)) {
+                        halfYearly = input
+                        if (input.length == 2) ("")
+                    }
+                },
+                label = { Text("HY") },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 4.dp)
+                    .semantics { contentDescription = "$subject Half Yearly marks input" },
+                isError = isError || hyError != null,
+                supportingText = hyError?.let { { Text(it, color = ErrorColor) } },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PrimaryColor,
+                    unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+                    cursorColor = PrimaryColor,
+                    focusedLabelColor = PrimaryColor,
+                    unfocusedLabelColor = TextColor.copy(alpha = 0.8f)
                 )
-            }
+            )
 
-            Column(modifier = Modifier.weight(1f)) {
-                OutlinedTextField(
-                    value = annual,
-                    onValueChange = { input ->
-                        if (input.length <= 2 && (input.isEmpty() || input.toIntOrNull() != null)) {
-                            annual = input
-                        }
-                    },
-                    label = {
-                        Text(
-                            "AN",
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                color = TextColor.copy(alpha = 0.8f),
-                                fontFamily = FontFamily.SansSerif
-                            )
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 8.dp)
-                        .semantics { contentDescription = "$subject Annual marks input" },
-                    isError = isError || annualError != null,
-                    supportingText = annualError?.let {
-                        { Text(it, color = ErrorColor, fontFamily = FontFamily.SansSerif) }
-                    },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = if (subjectIndex < totalSubjects - 1) ImeAction.Next else ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = { nextFocusRequester?.requestFocus() },
-                        onDone = { focusManager.clearFocus() }
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                        focusedBorderColor = PrimaryColor,
-                        unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
-                        cursorColor = PrimaryColor,
-                        focusedLabelColor = PrimaryColor,
-                        unfocusedLabelColor = TextColor.copy(alpha = 0.8f),
-                        focusedTextColor = TextColor,
-                        unfocusedTextColor = TextColor
-                    )
+            OutlinedTextField(
+                value = annual,
+                onValueChange = { input ->
+                    if (input.length <= 2 && (input.isEmpty() || input.toIntOrNull() != null)) {
+                        annual = input
+                        if (input.length == 2) ("")
+                    }
+                },
+                label = { Text("AN") },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp)
+                    .semantics { contentDescription = "$subject Annual marks input" },
+                isError = isError || annualError != null,
+                supportingText = annualError?.let { { Text(it, color = ErrorColor) } },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = if (subjectIndex < totalSubjects - 1) ImeAction.Next else ImeAction.Done
+                ),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PrimaryColor,
+                    unfocusedBorderColor = TextColor.copy(alpha = 0.2f),
+                    cursorColor = PrimaryColor,
+                    focusedLabelColor = PrimaryColor,
+                    unfocusedLabelColor = TextColor.copy(alpha = 0.8f)
                 )
-            }
+            )
         }
     }
 }
 
 fun getSubjectsForClass(className: String): List<String> {
     return when (className) {
-        "Nursery" -> listOf("Urdu", "Hindi", "English", "Arabic", "Mathematics", "Counting", "Dua")
+        "Nur" -> listOf("Urdu", "Hindi", "English", "Arabic", "Mathematics", "Counting", "Dua")
         "KG" -> listOf("Urdu", "Hindi", "English", "Drawing", "Arabic", "Mathematics", "Dua")
         "1st" -> listOf("Urdu", "Hindi", "English", "Diniyat", "Arabic", "Mathematics", "Dua")
-        "2nd" -> listOf(
+        "2nd", "3rd", "4th", "5th" -> listOf(
             "Urdu", "Hindi", "English", "Diniyat", "Arabic",
             "Mathematics", "Science", "Social Study", "Moral Education", "Dua"
         )
-        else -> listOf(
-            "Urdu", "Hindi", "English", "Diniyat", "Arabic",
-            "Mathematics", "Science", "Social Study", "Moral Education", "Dua"
-        )
+        else -> listOf("Urdu", "Hindi", "English", "Diniyat", "Arabic", "Mathematics", "Dua")
     }
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 640, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_NO)
-//@Preview(showBackground = true, widthDp = 720, heightDp = 1280, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, widthDp = 360, heightDp = 640)
 @Composable
 fun MarkScreenPreview() {
     MaterialTheme {
