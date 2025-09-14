@@ -32,7 +32,7 @@ Installation
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/quba-marksheet-generator.git
+git clone https://github.com/KashifKhan1729/Quba.git
 ```
 
 1. Open the project in Android Studio
